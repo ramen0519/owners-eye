@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: owners-eye
+
+  profiles:
+    active: local
+
+mybatis:
+  mapper-locations: classpath:mapper/**/*.xml
+  type-aliases-package: com.ownerseye
+  configuration:
+    map-underscore-to-camel-case: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /api-docs
+
+server:
+  port: 8080

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ownerseye.ownerseye.domain.example.persistence.mapper.ExampleMapper">
+
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO example (name)
+        VALUES (#{name})
+    </insert>
+
+    <select id="findById" resultType="com.ownerseye.ownerseye.domain.example.persistence.entity.ExampleEntity">
+        SELECT id, name
+        FROM example
+        WHERE id = #{id}
+    </select>
+
+</mapper>
