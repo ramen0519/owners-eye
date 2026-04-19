@@ -9,9 +9,8 @@ build/
 *.ipr
 out/
 
-# 로컬/운영 설정 (민감정보)
+# 로컬 설정 (민감정보)
 src/main/resources/application-local.yaml
-src/main/resources/application-prod.yaml
 
 # 로그
 logs/
