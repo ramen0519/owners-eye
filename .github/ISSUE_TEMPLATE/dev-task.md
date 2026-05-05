@@ -1,6 +1,6 @@
 ---
 name: Dev Task
-about: Describe this issue template's purpose here.
+about: 작업 이슈 생성 (Feature / Fix / Refactor 등)
 title: ''
 labels: ''
 assignees: ''
