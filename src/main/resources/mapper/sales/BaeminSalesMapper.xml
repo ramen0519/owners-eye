@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ownerseye.ownerseye.domain.sales.persistence.mapper.BaeminSalesMapper">
+
+    <insert id="save">
+        <selectKey keyProperty="baeminDeliveryId" resultType="long" order="BEFORE">
+            SELECT baemin_sales_seq.nextval FROM dual
+        </selectKey>
+        INSERT INTO baemin_sales (baemin_delivery_id, upload_id, year_month, delivery_type,
+                                  order_amount, service_fee, coupon_discount, delivery_cost, payment_fee, vat)
+        VALUES (#{baeminDeliveryId}, #{uploadId}, #{yearMonth}, #{deliveryType},
+                #{orderAmount}, #{serviceFee}, #{couponDiscount}, #{deliveryCost}, #{paymentFee}, #{vat})
+    </insert>
+
+</mapper>

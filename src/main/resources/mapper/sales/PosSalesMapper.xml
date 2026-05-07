@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ownerseye.ownerseye.domain.sales.persistence.mapper.PosSalesMapper">
+
+    <insert id="save">
+        <selectKey keyProperty="posSaleId" resultType="long" order="BEFORE">
+            SELECT pos_sales_seq.nextval FROM dual
+        </selectKey>
+        INSERT INTO pos_sales (pos_sale_id, upload_id, year_month, channel, total_revenue, avg_price, total_orders)
+        VALUES (#{posSaleId}, #{uploadId}, #{yearMonth}, #{channel}, #{totalRevenue}, #{avgPrice}, #{totalOrders})
+    </insert>
+
+</mapper>
