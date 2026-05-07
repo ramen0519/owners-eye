@@ -10,7 +10,6 @@ import com.ownerseye.ownerseye.domain.upload.domain.constant.UploadType;
 import com.ownerseye.ownerseye.domain.upload.exception.UploadException;
 import com.ownerseye.ownerseye.domain.upload.exception.code.UploadErrorCode;
 import com.ownerseye.ownerseye.domain.upload.persistence.entity.UploadEntity;
-import com.ownerseye.ownerseye.domain.upload.persistence.mapper.UploadMapper;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.Cell;
@@ -33,7 +32,7 @@ public class PosParserService {
     private static final Set<String> SKIP_CHANNELS = Set.of("배달의민족", "배민1", "쿠팡이츠");
 
     private final StoreMapper storeMapper;
-    private final UploadMapper uploadMapper;
+    private final UploadService uploadService;
     private final PosSalesMapper posSalesMapper;
 
     @Transactional
@@ -47,7 +46,7 @@ public class PosParserService {
                 .yearMonth(yearMonth)
                 .fileName(file.getOriginalFilename())
                 .build();
-        uploadMapper.save(upload);
+        uploadService.save(upload);
 
         try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
             Sheet sheet = workbook.getSheetAt(1);
@@ -77,12 +76,12 @@ public class PosParserService {
                 posSalesMapper.save(posSales);
             }
 
-            uploadMapper.updateStatus(upload.getUploadId(), ParseStatus.DONE.name());
+            uploadService.updateStatus(upload.getUploadId(), ParseStatus.DONE.name());
 
         } catch (UploadException e) {
             throw e;
         } catch (Exception e) {
-            uploadMapper.updateStatus(upload.getUploadId(), ParseStatus.FAILED.name());
+            uploadService.updateStatus(upload.getUploadId(), ParseStatus.FAILED.name());
             throw new UploadException(UploadErrorCode.PARSE_FAILED);
         }
     }
