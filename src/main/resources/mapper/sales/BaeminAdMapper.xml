@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ownerseye.ownerseye.domain.sales.persistence.mapper.BaeminAdMapper">
+
+    <insert id="save">
+        <selectKey keyProperty="baeminAdId" resultType="long" order="BEFORE">
+            SELECT baemin_ad_seq.nextval FROM dual
+        </selectKey>
+        INSERT INTO baemin_ad (baemin_ad_id, upload_id, year_month, ad_fee)
+        VALUES (#{baeminAdId}, #{uploadId}, #{yearMonth}, #{adFee})
+    </insert>
+
+</mapper>
