@@ -1,6 +1,7 @@
 package com.ownerseye.ownerseye.domain.upload.presentation;
 
 import com.ownerseye.ownerseye.domain.upload.application.service.BaeminParserService;
+import com.ownerseye.ownerseye.domain.upload.application.service.CoupangParserService;
 import com.ownerseye.ownerseye.domain.upload.application.service.PosParserService;
 import com.ownerseye.ownerseye.global.response.DataResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,6 +24,7 @@ public class UploadController {
 
     private final PosParserService posParserService;
     private final BaeminParserService baeminParserService;
+    private final CoupangParserService coupangParserService;
 
     @Operation(summary = "POS 엑셀 업로드")
     @PostMapping(value = "/pos", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -45,6 +47,18 @@ public class UploadController {
     ) {
         LocalDate date = LocalDate.parse(yearMonth + "-01");
         baeminParserService.parse(userId, file, date);
+        return ResponseEntity.ok(DataResponse.ok());
+    }
+
+    @Operation(summary = "쿠팡 엑셀 업로드")
+    @PostMapping(value = "/coupang", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<DataResponse<Void>> uploadCoupang(
+            @AuthenticationPrincipal Long userId,
+            @RequestParam String yearMonth,
+            @RequestPart MultipartFile file
+    ) {
+        LocalDate date = LocalDate.parse(yearMonth + "-01");
+        coupangParserService.parse(userId, file, date);
         return ResponseEntity.ok(DataResponse.ok());
     }
 }
