@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ownerseye.ownerseye.domain.upload.persistence.mapper.UploadMapper">
+
+    <insert id="save">
+        <selectKey keyProperty="uploadId" resultType="long" order="BEFORE">
+            SELECT upload_seq.nextval FROM dual
+        </selectKey>
+        INSERT INTO upload (upload_id, store_id, upload_type, year_month, file_name, parse_status, created_at)
+        VALUES (#{uploadId}, #{storeId}, #{uploadType}, #{yearMonth}, #{fileName}, #{parseStatus}, SYSTIMESTAMP)
+    </insert>
+
+    <update id="updateStatus">
+        UPDATE upload
+        SET parse_status = #{parseStatus}
+        WHERE upload_id = #{uploadId}
+    </update>
+
+</mapper>

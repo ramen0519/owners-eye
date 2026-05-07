@@ -5,8 +5,11 @@
 <mapper namespace="com.ownerseye.ownerseye.domain.auth.persistence.mapper.UserMapper">
 
     <insert id="save">
-        INSERT INTO users (email, password, name, created_at)
-        VALUES (#{email}, #{password}, #{name}, SYSTIMESTAMP)
+        <selectKey keyProperty="userId" resultType="long" order="BEFORE">
+            SELECT users_seq.nextval FROM dual
+        </selectKey>
+        INSERT INTO users (user_id, email, password, name, created_at)
+        VALUES (#{userId}, #{email}, #{password}, #{name}, SYSTIMESTAMP)
     </insert>
 
     <select id="findByEmail" resultType="com.ownerseye.ownerseye.domain.auth.persistence.entity.UserEntity">
