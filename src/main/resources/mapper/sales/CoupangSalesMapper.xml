@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ownerseye.ownerseye.domain.sales.persistence.mapper.CoupangSalesMapper">
+
+    <insert id="save">
+        <selectKey keyProperty="coupangSaleId" resultType="long" order="BEFORE">
+            SELECT coupang_sales_seq.nextval FROM dual
+        </selectKey>
+        INSERT INTO coupang_sales (coupang_sale_id, upload_id, year_month, order_amount,
+                                   service_fee, payment_fee, delivery_fee, instant_discount, coupon_discount, ad_fee)
+        VALUES (#{coupangSaleId}, #{uploadId}, #{yearMonth}, #{orderAmount},
+                #{serviceFee}, #{paymentFee}, #{deliveryFee}, #{instantDiscount}, #{couponDiscount}, #{adFee})
+    </insert>
+
+</mapper>
