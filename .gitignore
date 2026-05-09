@@ -12,6 +12,9 @@ out/
 # 로컬 설정 (민감정보)
 src/main/resources/application-local.yaml
 
+# Claude Code (로컬 전용)
+CLAUDE.md
+
 # 로그
 logs/
 *.log
