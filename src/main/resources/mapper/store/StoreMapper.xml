@@ -4,10 +4,38 @@
 
 <mapper namespace="com.ownerseye.ownerseye.domain.store.persistence.mapper.StoreMapper">
 
-    <select id="findByUserId" resultType="com.ownerseye.ownerseye.domain.store.persistence.entity.StoreEntity">
+    <resultMap id="storeResultMap" type="com.ownerseye.ownerseye.domain.store.persistence.entity.StoreEntity">
+        <id     property="storeId"   column="store_id"/>
+        <result property="userId"    column="user_id"/>
+        <result property="storeName" column="store_name"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <insert id="save">
+        <selectKey keyProperty="storeId" resultType="long" order="BEFORE">
+            SELECT store_seq.nextval FROM dual
+        </selectKey>
+        INSERT INTO store (store_id, user_id, store_name, created_at)
+        VALUES (#{storeId}, #{userId}, #{storeName}, SYSTIMESTAMP)
+    </insert>
+
+    <select id="findByStoreIdAndUserId" resultMap="storeResultMap">
+        SELECT store_id, user_id, store_name, created_at
+        FROM store
+        WHERE store_id = #{storeId}
+          AND user_id  = #{userId}
+    </select>
+
+    <select id="findAllByUserId" resultMap="storeResultMap">
         SELECT store_id, user_id, store_name, created_at
         FROM store
         WHERE user_id = #{userId}
+        ORDER BY created_at DESC
     </select>
+
+    <delete id="delete">
+        DELETE FROM store
+        WHERE store_id = #{storeId}
+    </delete>
 
 </mapper>
