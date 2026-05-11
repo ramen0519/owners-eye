@@ -4,7 +4,6 @@ import com.ownerseye.ownerseye.domain.sales.persistence.entity.BaeminAdEntity;
 import com.ownerseye.ownerseye.domain.sales.persistence.entity.BaeminSalesEntity;
 import com.ownerseye.ownerseye.domain.sales.persistence.mapper.BaeminAdMapper;
 import com.ownerseye.ownerseye.domain.sales.persistence.mapper.BaeminSalesMapper;
-import com.ownerseye.ownerseye.domain.store.persistence.entity.StoreEntity;
 import com.ownerseye.ownerseye.domain.store.persistence.mapper.StoreMapper;
 import com.ownerseye.ownerseye.domain.upload.domain.constant.ParseStatus;
 import com.ownerseye.ownerseye.domain.upload.domain.constant.UploadType;
@@ -42,12 +41,12 @@ public class BaeminParserService {
     private final BaeminAdMapper baeminAdMapper;
 
     @Transactional
-    public void parse(Long userId, MultipartFile file, LocalDate yearMonth) {
-        StoreEntity store = storeMapper.findByUserId(userId)
+    public void parse(Long userId, Long storeId, MultipartFile file, LocalDate yearMonth) {
+        storeMapper.findByStoreIdAndUserId(storeId, userId)
                 .orElseThrow(() -> new UploadException(UploadErrorCode.STORE_NOT_FOUND));
 
         UploadEntity upload = UploadEntity.builder()
-                .storeId(store.getStoreId())
+                .storeId(storeId)
                 .uploadType(UploadType.BAEMIN.name())
                 .yearMonth(yearMonth)
                 .fileName(file.getOriginalFilename())
