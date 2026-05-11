@@ -3,7 +3,6 @@ package com.ownerseye.ownerseye.domain.upload.application.service;
 import com.ownerseye.ownerseye.domain.sales.domain.constant.PosChannel;
 import com.ownerseye.ownerseye.domain.sales.persistence.entity.PosSalesEntity;
 import com.ownerseye.ownerseye.domain.sales.persistence.mapper.PosSalesMapper;
-import com.ownerseye.ownerseye.domain.store.persistence.entity.StoreEntity;
 import com.ownerseye.ownerseye.domain.store.persistence.mapper.StoreMapper;
 import com.ownerseye.ownerseye.domain.upload.domain.constant.ParseStatus;
 import com.ownerseye.ownerseye.domain.upload.domain.constant.UploadType;
@@ -36,12 +35,12 @@ public class PosParserService {
     private final PosSalesMapper posSalesMapper;
 
     @Transactional
-    public void parse(Long userId, MultipartFile file, LocalDate yearMonth) {
-        StoreEntity store = storeMapper.findByUserId(userId)
+    public void parse(Long userId, Long storeId, MultipartFile file, LocalDate yearMonth) {
+        storeMapper.findByStoreIdAndUserId(storeId, userId)
                 .orElseThrow(() -> new UploadException(UploadErrorCode.STORE_NOT_FOUND));
 
         UploadEntity upload = UploadEntity.builder()
-                .storeId(store.getStoreId())
+                .storeId(storeId)
                 .uploadType(UploadType.POS.name())
                 .yearMonth(yearMonth)
                 .fileName(file.getOriginalFilename())
