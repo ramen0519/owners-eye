@@ -7,7 +7,6 @@ import com.ownerseye.ownerseye.domain.fixed_cost.exception.FixedCostException;
 import com.ownerseye.ownerseye.domain.fixed_cost.exception.code.FixedCostErrorCode;
 import com.ownerseye.ownerseye.domain.fixed_cost.persistence.entity.FixedCostEntity;
 import com.ownerseye.ownerseye.domain.fixed_cost.persistence.mapper.FixedCostMapper;
-import com.ownerseye.ownerseye.domain.store.persistence.entity.StoreEntity;
 import com.ownerseye.ownerseye.domain.store.persistence.mapper.StoreMapper;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -32,8 +31,7 @@ public class FixedCostService {
 
     @Transactional
     public Long save(Long userId, FixedCostSaveRequest request) {
-        StoreEntity store = getStore(userId);
-        validateOwnership(store, request.storeId());
+        validateStoreOwnership(request.storeId(), userId);
 
         LocalDate yearMonth = parseYearMonth(request.yearMonth());
 
@@ -59,8 +57,7 @@ public class FixedCostService {
     }
 
     public FixedCostResponse findByStoreIdAndYearMonth(Long userId, Long storeId, String yearMonthStr) {
-        StoreEntity store = getStore(userId);
-        validateOwnership(store, storeId);
+        validateStoreOwnership(storeId, userId);
 
         LocalDate yearMonth = parseYearMonth(yearMonthStr);
         return FixedCostResponse.from(
@@ -70,8 +67,7 @@ public class FixedCostService {
     }
 
     public List<FixedCostResponse> findAllByStoreId(Long userId, Long storeId) {
-        StoreEntity store = getStore(userId);
-        validateOwnership(store, storeId);
+        validateStoreOwnership(storeId, userId);
 
         return fixedCostMapper.findAllByStoreId(storeId).stream()
                 .map(FixedCostResponse::from)
@@ -80,12 +76,10 @@ public class FixedCostService {
 
     @Transactional
     public void update(Long userId, Long fixedCostId, FixedCostUpdateRequest request) {
-        StoreEntity store = getStore(userId);
-
         FixedCostEntity existing = fixedCostMapper.findById(fixedCostId)
                 .orElseThrow(() -> new FixedCostException(FixedCostErrorCode.FIXED_COST_NOT_FOUND));
 
-        validateOwnership(store, existing.getStoreId());
+        validateStoreOwnership(existing.getStoreId(), userId);
 
         fixedCostMapper.update(
                 fixedCostId,
@@ -101,26 +95,18 @@ public class FixedCostService {
 
     @Transactional
     public void delete(Long userId, Long fixedCostId) {
-        StoreEntity store = getStore(userId);
-
         FixedCostEntity existing = fixedCostMapper.findById(fixedCostId)
                 .orElseThrow(() -> new FixedCostException(FixedCostErrorCode.FIXED_COST_NOT_FOUND));
 
-        validateOwnership(store, existing.getStoreId());
+        validateStoreOwnership(existing.getStoreId(), userId);
         fixedCostMapper.delete(fixedCostId);
     }
 
     // ── helpers ──────────────────────────────────────────────────────────────
 
-    private StoreEntity getStore(Long userId) {
-        return storeMapper.findByUserId(userId)
-                .orElseThrow(() -> new FixedCostException(FixedCostErrorCode.STORE_NOT_FOUND));
-    }
-
-    private void validateOwnership(StoreEntity store, Long requestedStoreId) {
-        if (!store.getStoreId().equals(requestedStoreId)) {
-            throw new FixedCostException(FixedCostErrorCode.STORE_ACCESS_DENIED);
-        }
+    private void validateStoreOwnership(Long storeId, Long userId) {
+        storeMapper.findByStoreIdAndUserId(storeId, userId)
+                .orElseThrow(() -> new FixedCostException(FixedCostErrorCode.STORE_ACCESS_DENIED));
     }
 
     private LocalDate parseYearMonth(String yearMonthStr) {
