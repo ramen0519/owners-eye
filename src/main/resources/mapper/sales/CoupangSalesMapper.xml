@@ -4,6 +4,29 @@
 
 <mapper namespace="com.ownerseye.ownerseye.domain.sales.persistence.mapper.CoupangSalesMapper">
 
+    <resultMap id="coupangSalesResultMap" type="com.ownerseye.ownerseye.domain.sales.persistence.entity.CoupangSalesEntity">
+        <id     property="coupangSaleId"   column="coupang_sale_id"/>
+        <result property="uploadId"        column="upload_id"/>
+        <result property="yearMonth"       column="year_month"/>
+        <result property="orderAmount"     column="order_amount"/>
+        <result property="serviceFee"      column="service_fee"/>
+        <result property="paymentFee"      column="payment_fee"/>
+        <result property="deliveryFee"     column="delivery_fee"/>
+        <result property="instantDiscount" column="instant_discount"/>
+        <result property="couponDiscount"  column="coupon_discount"/>
+        <result property="adFee"           column="ad_fee"/>
+    </resultMap>
+
+    <select id="findByStoreIdAndYearMonth" resultMap="coupangSalesResultMap">
+        SELECT c.coupang_sale_id, c.upload_id, c.year_month, c.order_amount,
+               c.service_fee, c.payment_fee, c.delivery_fee,
+               c.instant_discount, c.coupon_discount, c.ad_fee
+        FROM coupang_sales c
+        JOIN upload u ON c.upload_id = u.upload_id
+        WHERE u.store_id   = #{storeId}
+          AND c.year_month = TRUNC(#{yearMonth}, 'MM')
+    </select>
+
     <insert id="save">
         <selectKey keyProperty="coupangSaleId" resultType="long" order="BEFORE">
             SELECT coupang_sales_seq.nextval FROM dual

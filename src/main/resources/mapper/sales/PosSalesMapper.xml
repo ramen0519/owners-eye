@@ -4,6 +4,25 @@
 
 <mapper namespace="com.ownerseye.ownerseye.domain.sales.persistence.mapper.PosSalesMapper">
 
+    <resultMap id="posSalesResultMap" type="com.ownerseye.ownerseye.domain.sales.persistence.entity.PosSalesEntity">
+        <id     property="posSaleId"    column="pos_sale_id"/>
+        <result property="uploadId"     column="upload_id"/>
+        <result property="yearMonth"    column="year_month"/>
+        <result property="channel"      column="channel"/>
+        <result property="totalRevenue" column="total_revenue"/>
+        <result property="avgPrice"     column="avg_price"/>
+        <result property="totalOrders"  column="total_orders"/>
+    </resultMap>
+
+    <select id="findAllByStoreIdAndYearMonth" resultMap="posSalesResultMap">
+        SELECT p.pos_sale_id, p.upload_id, p.year_month, p.channel,
+               p.total_revenue, p.avg_price, p.total_orders
+        FROM pos_sales p
+        JOIN upload u ON p.upload_id = u.upload_id
+        WHERE u.store_id   = #{storeId}
+          AND p.year_month = TRUNC(#{yearMonth}, 'MM')
+    </select>
+
     <insert id="save">
         <selectKey keyProperty="posSaleId" resultType="long" order="BEFORE">
             SELECT pos_sales_seq.nextval FROM dual
