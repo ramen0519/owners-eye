@@ -3,7 +3,7 @@ package com.ownerseye.ownerseye.domain.insight.application.service;
 import com.ownerseye.ownerseye.domain.insight.domain.prompt.InsightPrompts;
 import com.ownerseye.ownerseye.domain.insight.domain.tools.InsightTools;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.model.ChatOptions;
+import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;

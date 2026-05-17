@@ -5,7 +5,7 @@ import com.ownerseye.ownerseye.global.exception.AppException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
-import org.springframework.ai.tool.context.ToolContext;
+import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.stereotype.Component;
 
 @Component
