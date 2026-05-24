@@ -10,6 +10,7 @@ import com.ownerseye.ownerseye.domain.fixed_cost.persistence.mapper.FixedCostMap
 import com.ownerseye.ownerseye.domain.store.persistence.mapper.StoreMapper;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +29,7 @@ public class FixedCostService {
 
     private final FixedCostMapper fixedCostMapper;
     private final StoreMapper storeMapper;
+    private final CacheManager cacheManager;
 
     @Transactional
     public Long save(Long userId, FixedCostSaveRequest request) {
@@ -53,6 +55,7 @@ public class FixedCostService {
                 .build();
 
         fixedCostMapper.save(fixedCost);
+        evictAnalysisCache(userId, request.storeId(), yearMonth);
         return fixedCost.getFixedCostId();
     }
 
@@ -91,6 +94,7 @@ public class FixedCostService {
                 request.consumables() != null ? request.consumables() : existing.getConsumables(),
                 request.other() != null ? request.other() : existing.getOther()
         );
+        evictAnalysisCache(userId, existing.getStoreId(), existing.getYearMonth());
     }
 
     @Transactional
@@ -100,9 +104,16 @@ public class FixedCostService {
 
         validateStoreOwnership(existing.getStoreId(), userId);
         fixedCostMapper.delete(fixedCostId);
+        evictAnalysisCache(userId, existing.getStoreId(), existing.getYearMonth());
     }
 
     // ── helpers ──────────────────────────────────────────────────────────────
+
+    private void evictAnalysisCache(Long userId, Long storeId, LocalDate yearMonth) {
+        String key = userId + ":" + storeId + ":" + yearMonth.format(YEAR_MONTH_FORMATTER);
+        var cache = cacheManager.getCache("analysis");
+        if (cache != null) cache.evict(key);
+    }
 
     private void validateStoreOwnership(Long storeId, Long userId) {
         storeMapper.findByStoreIdAndUserId(storeId, userId)

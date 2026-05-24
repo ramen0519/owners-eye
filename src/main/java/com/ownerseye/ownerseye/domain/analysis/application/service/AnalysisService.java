@@ -18,6 +18,7 @@ import com.ownerseye.ownerseye.domain.sales.persistence.mapper.PosSalesMapper;
 import com.ownerseye.ownerseye.domain.store.persistence.mapper.StoreMapper;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +38,7 @@ public class AnalysisService {
     private final CoupangSalesMapper coupangSalesMapper;
     private final FixedCostMapper fixedCostMapper;
 
+    @Cacheable(value = "analysis", key = "#userId + ':' + #storeId + ':' + #yearMonthStr")
     public AnalysisResponse analyze(Long userId, Long storeId, String yearMonthStr) {
         storeMapper.findByStoreIdAndUserId(storeId, userId)
                 .orElseThrow(() -> new AnalysisException(AnalysisErrorCode.STORE_ACCESS_DENIED));

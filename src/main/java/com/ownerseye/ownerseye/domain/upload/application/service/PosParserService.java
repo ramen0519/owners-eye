@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.Set;
 
@@ -82,6 +83,10 @@ public class PosParserService {
         } catch (Exception e) {
             uploadService.updateStatus(upload.getUploadId(), ParseStatus.FAILED.name());
             throw new UploadException(UploadErrorCode.PARSE_FAILED);
+        }
+        try {
+            uploadService.evictAnalysisCache(userId, storeId, yearMonth.format(DateTimeFormatter.ofPattern("yyyy-MM")));
+        } catch (Exception ignored) {
         }
     }
 
