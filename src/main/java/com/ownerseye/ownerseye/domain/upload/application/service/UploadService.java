@@ -4,7 +4,6 @@ import com.ownerseye.ownerseye.domain.upload.persistence.entity.UploadEntity;
 import com.ownerseye.ownerseye.domain.upload.persistence.mapper.UploadMapper;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,9 +22,5 @@ public class UploadService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void updateStatus(Long uploadId, String parseStatus) {
         uploadMapper.updateStatus(uploadId, parseStatus);
-    }
-
-    @CacheEvict(value = "analysis", key = "#userId + ':' + #storeId + ':' + #yearMonthStr")
-    public void evictAnalysisCache(Long userId, Long storeId, String yearMonthStr) {
     }
 }

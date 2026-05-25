@@ -30,12 +30,11 @@ public class UploadController {
     @PostMapping(value = "/pos", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<DataResponse<Void>> uploadPos(
             @AuthenticationPrincipal Long userId,
-            @RequestParam Long storeId,
             @RequestParam String yearMonth,
             @RequestPart MultipartFile file
     ) {
         LocalDate date = LocalDate.parse(yearMonth + "-01");
-        posParserService.parse(userId, storeId, file, date);
+        posParserService.parse(userId, file, date);
         return ResponseEntity.ok(DataResponse.ok());
     }
 
@@ -43,12 +42,11 @@ public class UploadController {
     @PostMapping(value = "/baemin", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<DataResponse<Void>> uploadBaemin(
             @AuthenticationPrincipal Long userId,
-            @RequestParam Long storeId,
             @RequestParam String yearMonth,
             @RequestPart MultipartFile file
     ) {
         LocalDate date = LocalDate.parse(yearMonth + "-01");
-        baeminParserService.parse(userId, storeId, file, date);
+        baeminParserService.parse(userId, file, date);
         return ResponseEntity.ok(DataResponse.ok());
     }
 
@@ -56,12 +54,11 @@ public class UploadController {
     @PostMapping(value = "/coupang", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<DataResponse<Void>> uploadCoupang(
             @AuthenticationPrincipal Long userId,
-            @RequestParam Long storeId,
             @RequestParam String yearMonth,
             @RequestPart MultipartFile file
     ) {
         LocalDate date = LocalDate.parse(yearMonth + "-01");
-        coupangParserService.parse(userId, storeId, file, date);
+        coupangParserService.parse(userId, file, date);
         return ResponseEntity.ok(DataResponse.ok());
     }
 }
