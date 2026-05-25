@@ -4,6 +4,21 @@
 
 <mapper namespace="com.ownerseye.ownerseye.domain.sales.persistence.mapper.BaeminAdMapper">
 
+    <resultMap id="baeminAdResultMap" type="com.ownerseye.ownerseye.domain.sales.persistence.entity.BaeminAdEntity">
+        <id     property="baeminAdId" column="baemin_ad_id"/>
+        <result property="uploadId"   column="upload_id"/>
+        <result property="yearMonth"  column="year_month"/>
+        <result property="adFee"      column="ad_fee"/>
+    </resultMap>
+
+    <select id="findByStoreIdAndYearMonth" resultMap="baeminAdResultMap">
+        SELECT a.baemin_ad_id, a.upload_id, a.year_month, a.ad_fee
+        FROM baemin_ad a
+        JOIN upload u ON a.upload_id = u.upload_id
+        WHERE u.store_id   = #{storeId}
+          AND a.year_month = TRUNC(#{yearMonth}, 'MM')
+    </select>
+
     <insert id="save">
         <selectKey keyProperty="baeminAdId" resultType="long" order="BEFORE">
             SELECT baemin_ad_seq.nextval FROM dual

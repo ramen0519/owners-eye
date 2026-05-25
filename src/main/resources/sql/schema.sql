@@ -14,6 +14,7 @@ CREATE SEQUENCE baemin_sales_seq   START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
 CREATE SEQUENCE baemin_ad_seq      START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
 CREATE SEQUENCE coupang_sales_seq  START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
 CREATE SEQUENCE expense_seq        START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
+CREATE SEQUENCE fixed_cost_seq     START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
 
 -- =========================
 -- 2. 테이블
@@ -116,6 +117,26 @@ CREATE TABLE expense (
     CONSTRAINT fk_expense_store FOREIGN KEY (store_id) REFERENCES store(store_id)
 );
 
+-- 고정비용 테이블: 가게별 월별 고정비용을 한 행으로 저장
+-- year_month: DATE 타입으로 매월 1일(TRUNC(date, 'MM'))을 저장
+CREATE TABLE fixed_cost (
+    fixed_cost_id        NUMBER    NOT NULL,
+    store_id             NUMBER    NOT NULL,
+    year_month           DATE      NOT NULL,
+    material_cost        NUMBER    DEFAULT 0 NOT NULL,  -- 재료비
+    store_delivery_fee   NUMBER    DEFAULT 0 NOT NULL,  -- 가게배달료
+    labor_cost           NUMBER    DEFAULT 0 NOT NULL,  -- 인건비
+    utilities            NUMBER    DEFAULT 0 NOT NULL,  -- 수도가스전기요금
+    rent                 NUMBER    DEFAULT 0 NOT NULL,  -- 임대료
+    consumables          NUMBER    DEFAULT 0 NOT NULL,  -- 소모품
+    other                NUMBER    DEFAULT 0 NOT NULL,  -- 기타
+    created_at           TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at           TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT pk_fixed_cost PRIMARY KEY (fixed_cost_id),
+    CONSTRAINT fk_fixed_cost_store FOREIGN KEY (store_id) REFERENCES store(store_id),
+    CONSTRAINT uq_fixed_cost UNIQUE (store_id, year_month)
+);
+
 -- =========================
 -- 3. 인덱스
 -- =========================
@@ -123,4 +144,5 @@ CREATE TABLE expense (
 -- (UNIQUE 제약조건은 Oracle이 자동으로 인덱스 생성함)
 CREATE INDEX idx_store_user_id    ON store(user_id);
 CREATE INDEX idx_upload_store_id  ON upload(store_id);
-CREATE INDEX idx_expense_store_id ON expense(store_id);
+CREATE INDEX idx_expense_store_id    ON expense(store_id);
+CREATE INDEX idx_fixed_cost_store_id ON fixed_cost(store_id);

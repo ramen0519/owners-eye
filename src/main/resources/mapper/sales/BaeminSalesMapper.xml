@@ -4,6 +4,29 @@
 
 <mapper namespace="com.ownerseye.ownerseye.domain.sales.persistence.mapper.BaeminSalesMapper">
 
+    <resultMap id="baeminSalesResultMap" type="com.ownerseye.ownerseye.domain.sales.persistence.entity.BaeminSalesEntity">
+        <id     property="baeminDeliveryId" column="baemin_delivery_id"/>
+        <result property="uploadId"         column="upload_id"/>
+        <result property="yearMonth"        column="year_month"/>
+        <result property="deliveryType"     column="delivery_type"/>
+        <result property="orderAmount"      column="order_amount"/>
+        <result property="serviceFee"       column="service_fee"/>
+        <result property="couponDiscount"   column="coupon_discount"/>
+        <result property="deliveryCost"     column="delivery_cost"/>
+        <result property="paymentFee"       column="payment_fee"/>
+        <result property="vat"              column="vat"/>
+    </resultMap>
+
+    <select id="findAllByStoreIdAndYearMonth" resultMap="baeminSalesResultMap">
+        SELECT b.baemin_delivery_id, b.upload_id, b.year_month, b.delivery_type,
+               b.order_amount, b.service_fee, b.coupon_discount,
+               b.delivery_cost, b.payment_fee, b.vat
+        FROM baemin_sales b
+        JOIN upload u ON b.upload_id = u.upload_id
+        WHERE u.store_id   = #{storeId}
+          AND b.year_month = TRUNC(#{yearMonth}, 'MM')
+    </select>
+
     <insert id="save">
         <selectKey keyProperty="baeminDeliveryId" resultType="long" order="BEFORE">
             SELECT baemin_sales_seq.nextval FROM dual

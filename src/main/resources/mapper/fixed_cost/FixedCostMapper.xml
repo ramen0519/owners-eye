@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ownerseye.ownerseye.domain.fixed_cost.persistence.mapper.FixedCostMapper">
+
+    <resultMap id="fixedCostResultMap" type="com.ownerseye.ownerseye.domain.fixed_cost.persistence.entity.FixedCostEntity">
+        <id     property="fixedCostId"      column="fixed_cost_id"/>
+        <result property="storeId"           column="store_id"/>
+        <result property="yearMonth"         column="year_month"/>
+        <result property="materialCost"      column="material_cost"/>
+        <result property="storeDeliveryFee"  column="store_delivery_fee"/>
+        <result property="laborCost"         column="labor_cost"/>
+        <result property="utilities"         column="utilities"/>
+        <result property="rent"              column="rent"/>
+        <result property="consumables"       column="consumables"/>
+        <result property="other"             column="other"/>
+        <result property="createdAt"         column="created_at"/>
+        <result property="updatedAt"         column="updated_at"/>
+    </resultMap>
+
+    <insert id="save">
+        <selectKey keyProperty="fixedCostId" resultType="long" order="BEFORE">
+            SELECT fixed_cost_seq.nextval FROM dual
+        </selectKey>
+        INSERT INTO fixed_cost (
+            fixed_cost_id, store_id, year_month,
+            material_cost, store_delivery_fee, labor_cost,
+            utilities, rent, consumables, other,
+            created_at, updated_at
+        ) VALUES (
+            #{fixedCostId}, #{storeId}, TRUNC(#{yearMonth}, 'MM'),
+            #{materialCost}, #{storeDeliveryFee}, #{laborCost},
+            #{utilities}, #{rent}, #{consumables}, #{other},
+            SYSTIMESTAMP, SYSTIMESTAMP
+        )
+    </insert>
+
+    <select id="findByStoreIdAndYearMonth" resultMap="fixedCostResultMap">
+        SELECT fixed_cost_id, store_id, year_month,
+               material_cost, store_delivery_fee, labor_cost,
+               utilities, rent, consumables, other,
+               created_at, updated_at
+        FROM fixed_cost
+        WHERE store_id   = #{storeId}
+          AND year_month = TRUNC(#{yearMonth}, 'MM')
+    </select>
+
+    <select id="findById" resultMap="fixedCostResultMap">
+        SELECT fixed_cost_id, store_id, year_month,
+               material_cost, store_delivery_fee, labor_cost,
+               utilities, rent, consumables, other,
+               created_at, updated_at
+        FROM fixed_cost
+        WHERE fixed_cost_id = #{fixedCostId}
+    </select>
+
+    <select id="findAllByStoreId" resultMap="fixedCostResultMap">
+        SELECT fixed_cost_id, store_id, year_month,
+               material_cost, store_delivery_fee, labor_cost,
+               utilities, rent, consumables, other,
+               created_at, updated_at
+        FROM fixed_cost
+        WHERE store_id = #{storeId}
+        ORDER BY year_month DESC
+    </select>
+
+    <update id="update">
+        UPDATE fixed_cost
+        SET material_cost      = #{materialCost},
+            store_delivery_fee = #{storeDeliveryFee},
+            labor_cost         = #{laborCost},
+            utilities          = #{utilities},
+            rent               = #{rent},
+            consumables        = #{consumables},
+            other              = #{other},
+            updated_at         = SYSTIMESTAMP
+        WHERE fixed_cost_id = #{fixedCostId}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM fixed_cost
+        WHERE fixed_cost_id = #{fixedCostId}
+    </delete>
+
+</mapper>
