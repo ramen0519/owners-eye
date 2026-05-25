@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Set;
 
 @Slf4j
@@ -123,6 +124,10 @@ public class BaeminParserService {
             log.error("[BAEMIN PARSE ERROR]", e);
             uploadService.updateStatus(upload.getUploadId(), ParseStatus.FAILED.name());
             throw new UploadException(UploadErrorCode.PARSE_FAILED);
+        }
+        try {
+            uploadService.evictAnalysisCache(userId, storeId, yearMonth.format(DateTimeFormatter.ofPattern("yyyy-MM")));
+        } catch (Exception ignored) {
         }
     }
 
