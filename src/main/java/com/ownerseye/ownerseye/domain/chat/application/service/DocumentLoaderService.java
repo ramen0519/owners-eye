@@ -37,7 +37,10 @@ public class DocumentLoaderService {
                 ClassPathResource resource = new ClassPathResource(filePath);
                 if (!resource.exists()) continue;
 
-                String content = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8).trim();
+                String content;
+                try (var inputStream = resource.getInputStream()) {
+                    content = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8).trim();
+                }
                 if (content.isEmpty()) continue;
 
                 documents.add(new Document(content, Map.of("source", filePath)));
@@ -52,8 +55,12 @@ public class DocumentLoaderService {
             return;
         }
 
-        TokenTextSplitter splitter = new TokenTextSplitter();
-        vectorStore.add(splitter.apply(documents));
-        log.info("벡터 저장소에 문서 {} 개 저장 완료", documents.size());
+        try {
+            TokenTextSplitter splitter = new TokenTextSplitter();
+            vectorStore.add(splitter.apply(documents));
+            log.info("벡터 저장소에 문서 {} 개 저장 완료", documents.size());
+        } catch (Exception e) {
+            log.error("벡터 저장소 문서 저장 실패. RAG 기능이 비활성화됩니다.", e);
+        }
     }
 }

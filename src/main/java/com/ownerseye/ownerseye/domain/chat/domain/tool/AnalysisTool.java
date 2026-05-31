@@ -4,8 +4,10 @@ import com.ownerseye.ownerseye.domain.analysis.application.dto.response.Analysis
 import com.ownerseye.ownerseye.domain.analysis.application.dto.response.ChannelAnalysisResponse;
 import com.ownerseye.ownerseye.domain.analysis.application.dto.response.CostItemResponse;
 import com.ownerseye.ownerseye.domain.analysis.application.service.AnalysisService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.annotation.Tool;
 
+@Slf4j
 public class AnalysisTool {
 
     private final AnalysisService analysisService;
@@ -24,7 +26,8 @@ public class AnalysisTool {
             AnalysisResponse response = analysisService.analyze(userId, storeId, yearMonth);
             return format(response);
         } catch (Exception e) {
-            return yearMonth + " 데이터가 없습니다.";
+            log.error("[AnalysisTool] 분석 조회 실패: userId={}, storeId={}, yearMonth={}", userId, storeId, yearMonth, e);
+            return yearMonth + " 데이터 조회 중 오류가 발생했습니다.";
         }
     }
 
