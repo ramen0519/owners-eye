@@ -8,9 +8,10 @@ import com.ownerseye.ownerseye.domain.fixed_cost.exception.code.FixedCostErrorCo
 import com.ownerseye.ownerseye.domain.fixed_cost.persistence.entity.FixedCostEntity;
 import com.ownerseye.ownerseye.domain.fixed_cost.persistence.mapper.FixedCostMapper;
 import com.ownerseye.ownerseye.domain.store.persistence.mapper.StoreMapper;
+import com.ownerseye.ownerseye.global.event.AnalysisCacheEvictEvent;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.CacheManager;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +30,7 @@ public class FixedCostService {
 
     private final FixedCostMapper fixedCostMapper;
     private final StoreMapper storeMapper;
-    private final CacheManager cacheManager;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public Long save(Long userId, FixedCostSaveRequest request) {
@@ -55,7 +56,7 @@ public class FixedCostService {
                 .build();
 
         fixedCostMapper.save(fixedCost);
-        evictAnalysisCache(userId, request.storeId(), yearMonth);
+        eventPublisher.publishEvent(new AnalysisCacheEvictEvent(userId, request.storeId(), yearMonth.format(YEAR_MONTH_FORMATTER)));
         return fixedCost.getFixedCostId();
     }
 
@@ -94,7 +95,7 @@ public class FixedCostService {
                 request.consumables() != null ? request.consumables() : existing.getConsumables(),
                 request.other() != null ? request.other() : existing.getOther()
         );
-        evictAnalysisCache(userId, existing.getStoreId(), existing.getYearMonth());
+        eventPublisher.publishEvent(new AnalysisCacheEvictEvent(userId, existing.getStoreId(), existing.getYearMonth().format(YEAR_MONTH_FORMATTER)));
     }
 
     @Transactional
@@ -104,16 +105,10 @@ public class FixedCostService {
 
         validateStoreOwnership(existing.getStoreId(), userId);
         fixedCostMapper.delete(fixedCostId);
-        evictAnalysisCache(userId, existing.getStoreId(), existing.getYearMonth());
+        eventPublisher.publishEvent(new AnalysisCacheEvictEvent(userId, existing.getStoreId(), existing.getYearMonth().format(YEAR_MONTH_FORMATTER)));
     }
 
     // ── helpers ──────────────────────────────────────────────────────────────
-
-    private void evictAnalysisCache(Long userId, Long storeId, LocalDate yearMonth) {
-        String key = userId + ":" + storeId + ":" + yearMonth.format(YEAR_MONTH_FORMATTER);
-        var cache = cacheManager.getCache("analysis");
-        if (cache != null) cache.evict(key);
-    }
 
     private void validateStoreOwnership(Long storeId, Long userId) {
         storeMapper.findByStoreIdAndUserId(storeId, userId)
