@@ -30,6 +30,12 @@ public class DocumentLoaderService {
 
     @PostConstruct
     public void loadDocuments() {
+        List<Document> existing = vectorStore.similaritySearch("배달");
+        if (!existing.isEmpty()) {
+            log.info("벡터 저장소에 이미 문서가 있습니다. 임베딩 건너뜀.");
+            return;
+        }
+
         List<Document> documents = new ArrayList<>();
 
         for (String filePath : DOCUMENT_FILES) {
