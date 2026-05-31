@@ -22,7 +22,6 @@ spring:
       embedding:
         options:
           model: text-embedding-3-small
-
 mybatis:
   mapper-locations: classpath:mapper/**/*.xml
   type-aliases-package: com.ownerseye
