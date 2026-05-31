@@ -20,6 +20,7 @@ public class ChatService {
     private final VectorStore vectorStore;
     private final AnalysisService analysisService;
 
+    // 대화당 최대 10개로 제한되나, 서버 재시작 전까지 누적됨. 운영 환경에서는 Redis 기반 ChatMemoryRepository로 교체 필요.
     private final MessageWindowChatMemory chatMemory = MessageWindowChatMemory.builder()
             .chatMemoryRepository(new InMemoryChatMemoryRepository())
             .maxMessages(10)
