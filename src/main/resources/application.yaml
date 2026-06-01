@@ -34,3 +34,9 @@ springdoc:
 
 server:
   port: 8080
+
+logging:
+  level:
+    org.springframework.ai.tool: DEBUG
+    org.springframework.ai.chat: DEBUG
+    com.ownerseye.ownerseye.domain.insight: DEBUG
