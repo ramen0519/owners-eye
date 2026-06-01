@@ -8,8 +8,10 @@ import com.ownerseye.ownerseye.domain.fixed_cost.exception.code.FixedCostErrorCo
 import com.ownerseye.ownerseye.domain.fixed_cost.persistence.entity.FixedCostEntity;
 import com.ownerseye.ownerseye.domain.fixed_cost.persistence.mapper.FixedCostMapper;
 import com.ownerseye.ownerseye.domain.store.persistence.mapper.StoreMapper;
+import com.ownerseye.ownerseye.global.event.AnalysisCacheEvictEvent;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +30,7 @@ public class FixedCostService {
 
     private final FixedCostMapper fixedCostMapper;
     private final StoreMapper storeMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public Long save(Long userId, FixedCostSaveRequest request) {
@@ -53,6 +56,7 @@ public class FixedCostService {
                 .build();
 
         fixedCostMapper.save(fixedCost);
+        eventPublisher.publishEvent(new AnalysisCacheEvictEvent(userId, request.storeId(), yearMonth.format(YEAR_MONTH_FORMATTER)));
         return fixedCost.getFixedCostId();
     }
 
@@ -91,6 +95,7 @@ public class FixedCostService {
                 request.consumables() != null ? request.consumables() : existing.getConsumables(),
                 request.other() != null ? request.other() : existing.getOther()
         );
+        eventPublisher.publishEvent(new AnalysisCacheEvictEvent(userId, existing.getStoreId(), existing.getYearMonth().format(YEAR_MONTH_FORMATTER)));
     }
 
     @Transactional
@@ -100,6 +105,7 @@ public class FixedCostService {
 
         validateStoreOwnership(existing.getStoreId(), userId);
         fixedCostMapper.delete(fixedCostId);
+        eventPublisher.publishEvent(new AnalysisCacheEvictEvent(userId, existing.getStoreId(), existing.getYearMonth().format(YEAR_MONTH_FORMATTER)));
     }
 
     // ── helpers ──────────────────────────────────────────────────────────────

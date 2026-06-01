@@ -10,6 +10,7 @@ import com.ownerseye.ownerseye.domain.upload.domain.constant.UploadType;
 import com.ownerseye.ownerseye.domain.upload.exception.UploadException;
 import com.ownerseye.ownerseye.domain.upload.exception.code.UploadErrorCode;
 import com.ownerseye.ownerseye.domain.upload.persistence.entity.UploadEntity;
+import com.ownerseye.ownerseye.global.event.AnalysisCacheEvictEvent;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,11 +19,13 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Set;
 
 @Slf4j
@@ -39,6 +42,7 @@ public class BaeminParserService {
     private final UploadService uploadService;
     private final BaeminSalesMapper baeminSalesMapper;
     private final BaeminAdMapper baeminAdMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public void parse(Long userId, Long storeId, MultipartFile file, LocalDate yearMonth) {
@@ -124,6 +128,7 @@ public class BaeminParserService {
             uploadService.updateStatus(upload.getUploadId(), ParseStatus.FAILED.name());
             throw new UploadException(UploadErrorCode.PARSE_FAILED);
         }
+        eventPublisher.publishEvent(new AnalysisCacheEvictEvent(userId, storeId, yearMonth.format(DateTimeFormatter.ofPattern("yyyy-MM"))));
     }
 
     private boolean hasData(long[] acc) {

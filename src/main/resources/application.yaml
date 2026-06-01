@@ -20,6 +20,15 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
 
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      chat:
+        options:
+          model: gpt-4o-mini
+      embedding:
+        options:
+          model: text-embedding-3-small
 mybatis:
   mapper-locations: classpath:mapper/**/*.xml
   type-aliases-package: com.ownerseye

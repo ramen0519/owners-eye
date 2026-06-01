@@ -23,4 +23,5 @@ public class UploadService {
     public void updateStatus(Long uploadId, String parseStatus) {
         uploadMapper.updateStatus(uploadId, parseStatus);
     }
+
 }
