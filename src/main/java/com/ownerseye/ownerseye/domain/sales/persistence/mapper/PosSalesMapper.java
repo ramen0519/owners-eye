@@ -12,6 +12,8 @@ public interface PosSalesMapper {
 
     void save(PosSalesEntity posSales);
 
+    void deleteByStoreIdAndYearMonth(@Param("storeId") Long storeId, @Param("yearMonth") LocalDate yearMonth);
+
     List<PosSalesEntity> findAllByStoreIdAndYearMonth(@Param("storeId") Long storeId,
                                                       @Param("yearMonth") LocalDate yearMonth);
 }

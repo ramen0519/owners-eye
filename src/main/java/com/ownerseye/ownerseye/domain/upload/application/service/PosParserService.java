@@ -43,6 +43,8 @@ public class PosParserService {
         storeMapper.findByStoreIdAndUserId(storeId, userId)
                 .orElseThrow(() -> new UploadException(UploadErrorCode.STORE_NOT_FOUND));
 
+        posSalesMapper.deleteByStoreIdAndYearMonth(storeId, yearMonth);
+
         UploadEntity upload = UploadEntity.builder()
                 .storeId(storeId)
                 .uploadType(UploadType.POS.name())

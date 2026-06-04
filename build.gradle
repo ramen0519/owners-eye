@@ -17,19 +17,9 @@ java {
 	}
 }
 
-ext {
-	set('springAiVersion', "1.0.0")
-}
-
 repositories {
 	mavenCentral()
 	maven { url 'https://repo.spring.io/milestone' }
-}
-
-dependencyManagement {
-	imports {
-		mavenBom "org.springframework.ai:spring-ai-bom:${springAiVersion}"
-	}
 }
 
 dependencyManagement {
@@ -65,14 +55,11 @@ dependencies {
 
 	// Spring AI
 	implementation 'org.springframework.ai:spring-ai-starter-model-openai'
+	implementation 'org.springframework.ai:spring-ai-advisors-vector-store'
+	implementation 'org.springframework.ai:spring-ai-starter-vector-store-redis'
 
 	// Apache POI (Excel)
 	implementation 'org.apache.poi:poi-ooxml:5.2.5'
-
-	// Spring AI
-	implementation 'org.springframework.ai:spring-ai-starter-model-openai'
-	implementation 'org.springframework.ai:spring-ai-advisors-vector-store'
-	implementation 'org.springframework.ai:spring-ai-starter-vector-store-redis'
 
 	// Lombok
 	compileOnly 'org.projectlombok:lombok'

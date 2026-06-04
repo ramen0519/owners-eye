@@ -49,6 +49,9 @@ public class BaeminParserService {
         storeMapper.findByStoreIdAndUserId(storeId, userId)
                 .orElseThrow(() -> new UploadException(UploadErrorCode.STORE_NOT_FOUND));
 
+        baeminSalesMapper.deleteByStoreIdAndYearMonth(storeId, yearMonth);
+        baeminAdMapper.deleteByStoreIdAndYearMonth(storeId, yearMonth);
+
         UploadEntity upload = UploadEntity.builder()
                 .storeId(storeId)
                 .uploadType(UploadType.BAEMIN.name())
@@ -74,18 +77,18 @@ public class BaeminParserService {
 
                 if (BAEMIN1_TYPES.contains(orderType)) {
                     baemin1[0] += getNumeric(row, 5) + getNumeric(row, 6);
-                    baemin1[1] += getNumeric(row, 7) + getNumeric(row, 8);
-                    baemin1[2] += getNumeric(row, 11);
-                    baemin1[3] += getNumeric(row, 18) + getNumeric(row, 19);
-                    baemin1[4] += getNumeric(row, 20) + getNumeric(row, 21);
-                    baemin1[5] += getNumeric(row, 25);
+                    baemin1[1] += Math.abs(getNumeric(row, 7)) + Math.abs(getNumeric(row, 8));
+                    baemin1[2] += Math.abs(getNumeric(row, 11));
+                    baemin1[3] += Math.abs(getNumeric(row, 18)) + Math.abs(getNumeric(row, 19));
+                    baemin1[4] += Math.abs(getNumeric(row, 20)) + Math.abs(getNumeric(row, 21));
+                    baemin1[5] += Math.abs(getNumeric(row, 25));
                 } else if ("가게배달".equals(orderType)) {
                     storeType[0] += getNumeric(row, 5) + getNumeric(row, 6);
-                    storeType[1] += getNumeric(row, 9);
-                    storeType[2] += getNumeric(row, 11);
-                    storeType[3] += getNumeric(row, 12) + getNumeric(row, 13);
-                    storeType[4] += getNumeric(row, 20) + getNumeric(row, 21);
-                    storeType[5] += getNumeric(row, 25);
+                    storeType[1] += Math.abs(getNumeric(row, 9));
+                    storeType[2] += Math.abs(getNumeric(row, 11));
+                    storeType[3] += Math.abs(getNumeric(row, 12)) + Math.abs(getNumeric(row, 13));
+                    storeType[4] += Math.abs(getNumeric(row, 20)) + Math.abs(getNumeric(row, 21));
+                    storeType[5] += Math.abs(getNumeric(row, 25));
                 } else if ("우리가게클릭".equals(orderType)) {
                     adFee += getNumeric(row, 26) + getNumeric(row, 27);
                 }

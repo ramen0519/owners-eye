@@ -12,6 +12,8 @@ public interface CoupangSalesMapper {
 
     void save(CoupangSalesEntity coupangSales);
 
+    void deleteByStoreIdAndYearMonth(@Param("storeId") Long storeId, @Param("yearMonth") LocalDate yearMonth);
+
     Optional<CoupangSalesEntity> findByStoreIdAndYearMonth(@Param("storeId") Long storeId,
                                                            @Param("yearMonth") LocalDate yearMonth);
 }

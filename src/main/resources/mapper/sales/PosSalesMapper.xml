@@ -23,6 +23,15 @@
           AND p.year_month = TRUNC(#{yearMonth}, 'MM')
     </select>
 
+    <delete id="deleteByStoreIdAndYearMonth">
+        DELETE FROM pos_sales WHERE upload_id IN (
+            SELECT upload_id FROM upload
+            WHERE store_id   = #{storeId}
+              AND upload_type = 'POS'
+              AND TRUNC(year_month, 'MM') = TRUNC(#{yearMonth}, 'MM')
+        )
+    </delete>
+
     <insert id="save">
         <selectKey keyProperty="posSaleId" resultType="long" order="BEFORE">
             SELECT pos_sales_seq.nextval FROM dual

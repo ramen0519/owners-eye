@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ownerseye.ownerseye.domain.menu_sale.persistence.mapper.MenuSaleMapper">
+
+    <insert id="save">
+        <selectKey keyProperty="menuSaleId" resultType="long" order="BEFORE">
+            SELECT menu_sale_seq.nextval FROM dual
+        </selectKey>
+        INSERT INTO menu_sale (menu_sale_id, store_id, year_month, menu_name, quantity)
+        VALUES (#{menuSaleId}, #{storeId}, #{yearMonth}, #{menuName}, #{quantity})
+    </insert>
+
+    <delete id="deleteByStoreIdAndYearMonth">
+        DELETE FROM menu_sale
+        WHERE store_id = #{storeId}
+          AND year_month = #{yearMonth}
+    </delete>
+
+    <select id="findAllByStoreIdAndYearMonth"
+            resultType="com.ownerseye.ownerseye.domain.menu_sale.persistence.entity.MenuSaleEntity">
+        SELECT menu_sale_id, store_id, year_month, menu_name, quantity
+        FROM menu_sale
+        WHERE store_id = #{storeId}
+          AND year_month = #{yearMonth}
+    </select>
+
+</mapper>

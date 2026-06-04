@@ -41,13 +41,4 @@ public class InsightPrompts {
                 """.formatted(yearMonth, yearMonth);
     }
 
-    public static String analysisUserWithData(String yearMonth, String data) {
-        return """
-                다음은 %s의 실제 매출 데이터입니다:
-                %s
-
-                위 데이터를 기반으로 아래 출력 형식에 맞춰 분석해줘.
-                데이터에 없는 내용은 추측하지 말고, 제공된 수치만 근거로 분석해.
-                """.formatted(yearMonth, data);
-    }
 }

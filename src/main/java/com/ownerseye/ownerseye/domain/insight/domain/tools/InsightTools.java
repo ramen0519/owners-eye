@@ -1,6 +1,8 @@
 package com.ownerseye.ownerseye.domain.insight.domain.tools;
 
 import com.ownerseye.ownerseye.domain.analysis.application.dto.response.AnalysisResponse;
+import com.ownerseye.ownerseye.domain.analysis.application.dto.response.ChannelAnalysisResponse;
+import com.ownerseye.ownerseye.domain.analysis.application.dto.response.CostItemResponse;
 import com.ownerseye.ownerseye.domain.analysis.application.service.AnalysisService;
 import com.ownerseye.ownerseye.global.exception.AppException;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +39,7 @@ public class InsightTools {
                 log.info("[InsightTools] {} 월 데이터 없음 - 조회 중단 신호 반환", yearMonth);
                 return yearMonth + " 월 데이터가 없습니다. 이 달 이전은 더 이상 조회하지 마세요. 데이터가 있는 달만으로 분석을 완료하세요.";
             }
-            String result = response.toString();
+            String result = format(response);
             log.info("[InsightTools] 분석 결과 길이: {}", result.length());
             return result;
         } catch (AppException e) {
@@ -47,5 +49,30 @@ public class InsightTools {
             log.error("[InsightTools] 예외 발생: {}", e.getMessage(), e);
             return "분석 중 오류 발생: " + e.getMessage();
         }
+    }
+
+    private String format(AnalysisResponse response) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(response.yearMonth()).append(" 매출 분석\n");
+        sb.append("총 매출: ").append(String.format("%,d원", response.totalRevenue())).append("\n\n");
+
+        for (ChannelAnalysisResponse channel : response.channels()) {
+            if (channel.revenue() == 0) continue;
+            sb.append("[").append(channel.channel()).append("]\n");
+            sb.append("매출: ").append(String.format("%,d원", channel.revenue()))
+              .append(" (비중: ").append(channel.revenueRatio()).append("%)\n");
+
+            long totalCost = channel.costs().stream().mapToLong(CostItemResponse::amount).sum();
+            sb.append("순이익: ").append(String.format("%,d원", channel.revenue() - totalCost)).append("\n");
+
+            for (CostItemResponse cost : channel.costs()) {
+                if (cost.amount() == 0) continue;
+                sb.append("  - ").append(cost.name()).append(": ")
+                  .append(String.format("%,d원", cost.amount()))
+                  .append(" (").append(cost.ratio()).append("%)\n");
+            }
+            sb.append("\n");
+        }
+        return sb.toString();
     }
 }

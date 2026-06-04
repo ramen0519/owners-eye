@@ -12,6 +12,8 @@ public interface BaeminAdMapper {
 
     void save(BaeminAdEntity baeminAd);
 
+    void deleteByStoreIdAndYearMonth(@Param("storeId") Long storeId, @Param("yearMonth") LocalDate yearMonth);
+
     Optional<BaeminAdEntity> findByStoreIdAndYearMonth(@Param("storeId") Long storeId,
                                                        @Param("yearMonth") LocalDate yearMonth);
 }
