@@ -1,0 +1,64 @@
+.container { padding: 40px; max-width: 680px; }
+
+.pageHeader { margin-bottom: 28px; }
+.pageTitle { font-size: 26px; font-weight: 800; color: #1a1a2e; margin-bottom: 4px; }
+.pageDesc { font-size: 14px; color: #888; }
+
+.card {
+  background: white;
+  border-radius: 14px;
+  padding: 32px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  border: 1.5px solid #e2e8f0;
+  border-left: 4px solid #4f46e5;
+  margin-bottom: 16px;
+}
+
+.form { display: flex; flex-direction: column; gap: 20px; }
+
+.field { display: flex; flex-direction: column; gap: 8px; }
+
+.label { font-size: 14px; font-weight: 600; color: #333; }
+
+.monthInput {
+  padding: 11px 14px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 15px;
+  outline: none;
+  width: fit-content;
+  transition: border-color 0.2s;
+}
+.monthInput:focus { border-color: #4f46e5; }
+
+.fileInput { font-size: 14px; color: #555; }
+
+.fileName { font-size: 13px; color: #4f46e5; font-weight: 500; margin-top: 4px; }
+
+.uploadBtn {
+  padding: 13px;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+.uploadBtn:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+.uploadBtn:disabled { opacity: 0.6; cursor: not-allowed; box-shadow: none; }
+
+.success { margin-top: 16px; font-size: 14px; color: #10b981; font-weight: 600; }
+.error { margin-top: 16px; font-size: 14px; color: #ef4444; }
+
+.infoCard {
+  background: #f8faff;
+  border-radius: 12px;
+  padding: 20px 24px;
+  border: 1.5px solid #e0e7ff;
+}
+.infoTitle { font-size: 13px; font-weight: 700; color: #4f46e5; margin-bottom: 10px; }
+.infoList { padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+.infoList li { font-size: 13px; color: #666; line-height: 1.6; }
