@@ -8,20 +8,20 @@ spring:
     password: ${DB_PASSWORD:}
     driver-class-name: oracle.jdbc.OracleDriver
 
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-
   ai:
     openai:
       api-key: ${OPENAI_API_KEY:}
       chat:
         options:
-          model: gpt-4o-mini
+          model: ${OPENAI_MODEL:gpt-4o-mini}
       embedding:
         options:
           model: text-embedding-3-small
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
 mybatis:
   mapper-locations: classpath:mapper/**/*.xml
   type-aliases-package: com.ownerseye
@@ -36,3 +36,9 @@ springdoc:
 
 server:
   port: 8080
+
+logging:
+  level:
+    org.springframework.ai.tool: DEBUG
+    org.springframework.ai.chat: DEBUG
+    com.ownerseye.ownerseye.domain.insight: DEBUG

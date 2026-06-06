@@ -27,6 +27,15 @@
           AND b.year_month = TRUNC(#{yearMonth}, 'MM')
     </select>
 
+    <delete id="deleteByStoreIdAndYearMonth">
+        DELETE FROM baemin_sales WHERE upload_id IN (
+            SELECT upload_id FROM upload
+            WHERE store_id   = #{storeId}
+              AND upload_type = 'BAEMIN'
+              AND TRUNC(year_month, 'MM') = TRUNC(#{yearMonth}, 'MM')
+        )
+    </delete>
+
     <insert id="save">
         <selectKey keyProperty="baeminDeliveryId" resultType="long" order="BEFORE">
             SELECT baemin_sales_seq.nextval FROM dual

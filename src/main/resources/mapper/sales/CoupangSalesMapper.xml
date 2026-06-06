@@ -27,6 +27,15 @@
           AND c.year_month = TRUNC(#{yearMonth}, 'MM')
     </select>
 
+    <delete id="deleteByStoreIdAndYearMonth">
+        DELETE FROM coupang_sales WHERE upload_id IN (
+            SELECT upload_id FROM upload
+            WHERE store_id   = #{storeId}
+              AND upload_type = 'COUPANG'
+              AND TRUNC(year_month, 'MM') = TRUNC(#{yearMonth}, 'MM')
+        )
+    </delete>
+
     <insert id="save">
         <selectKey keyProperty="coupangSaleId" resultType="long" order="BEFORE">
             SELECT coupang_sales_seq.nextval FROM dual

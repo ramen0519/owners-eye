@@ -40,6 +40,8 @@ public class CoupangParserService {
         storeMapper.findByStoreIdAndUserId(storeId, userId)
                 .orElseThrow(() -> new UploadException(UploadErrorCode.STORE_NOT_FOUND));
 
+        coupangSalesMapper.deleteByStoreIdAndYearMonth(storeId, yearMonth);
+
         UploadEntity upload = UploadEntity.builder()
                 .storeId(storeId)
                 .uploadType(UploadType.COUPANG.name())

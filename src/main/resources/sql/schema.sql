@@ -137,6 +137,19 @@ CREATE TABLE fixed_cost (
     CONSTRAINT uq_fixed_cost UNIQUE (store_id, year_month)
 );
 
+CREATE SEQUENCE menu_sale_seq          START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
+
+CREATE TABLE menu_sale (
+    menu_sale_id NUMBER        NOT NULL,
+    store_id     NUMBER        NOT NULL,
+    year_month   DATE          NOT NULL,
+    menu_name    VARCHAR2(100) NOT NULL,
+    quantity     NUMBER(10)    DEFAULT 0 NOT NULL,
+    CONSTRAINT pk_menu_sale PRIMARY KEY (menu_sale_id),
+    CONSTRAINT fk_menu_sale_store FOREIGN KEY (store_id) REFERENCES store(store_id),
+    CONSTRAINT uq_menu_sale UNIQUE (store_id, year_month, menu_name)
+);
+
 -- =========================
 -- 3. 인덱스
 -- =========================

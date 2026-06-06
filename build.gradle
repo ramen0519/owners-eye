@@ -53,13 +53,13 @@ dependencies {
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
 
-	// Apache POI (Excel)
-	implementation 'org.apache.poi:poi-ooxml:5.2.5'
-
 	// Spring AI
 	implementation 'org.springframework.ai:spring-ai-starter-model-openai'
 	implementation 'org.springframework.ai:spring-ai-advisors-vector-store'
 	implementation 'org.springframework.ai:spring-ai-starter-vector-store-redis'
+
+	// Apache POI (Excel)
+	implementation 'org.apache.poi:poi-ooxml:5.2.5'
 
 	// Lombok
 	compileOnly 'org.projectlombok:lombok'
