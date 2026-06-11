@@ -18,3 +18,7 @@ CLAUDE.md
 # 로그
 logs/
 *.log
+
+# 프론트엔드
+frontend/node_modules/
+frontend/dist/
