@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { getMenuInsight } from '../../api/menuSale';
 import styles from './MenuInsightPage.module.css';
 
@@ -56,7 +57,7 @@ export default function MenuInsightPage() {
       {insight && (
         <div className={styles.insightBox}>
           <p className={styles.insightLabel}>AI 분석 결과</p>
-          <p className={styles.insightText}>{insight}</p>
+          <div className={styles.insightText}><ReactMarkdown>{insight}</ReactMarkdown></div>
         </div>
       )}
     </div>
