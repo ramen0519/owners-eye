@@ -42,16 +42,24 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_KEY }}
           script: |
+            docker start redis-stack 2>/dev/null || docker run -d \
+              --name redis-stack \
+              --network host \
+              redis/redis-stack-server:latest
             docker pull ${{ secrets.DOCKER_USERNAME }}/owners-eye:latest
             docker stop owners-eye || true
             docker rm owners-eye || true
             docker run -d \
               --name owners-eye \
-              -p 8080:8080 \
+              --network host \
               -e SPRING_PROFILES_ACTIVE=prod \
               -e "DB_URL=${{ secrets.DB_URL }}" \
               -e "DB_USERNAME=${{ secrets.DB_USERNAME }}" \
               -e "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" \
-              -e "REDIS_HOST=${{ secrets.REDIS_HOST }}" \
-              -e "REDIS_PORT=${{ secrets.REDIS_PORT }}" \
+              -e "REDIS_HOST=localhost" \
+              -e "REDIS_PORT=6379" \
+              -e "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" \
+              -e "JWT_SECRET=${{ secrets.JWT_SECRET }}" \
+              -e "JWT_ACCESS_EXPIRATION=${{ secrets.JWT_ACCESS_EXPIRATION }}" \
+              -e "JWT_REFRESH_EXPIRATION=${{ secrets.JWT_REFRESH_EXPIRATION }}" \
               ${{ secrets.DOCKER_USERNAME }}/owners-eye:latest
