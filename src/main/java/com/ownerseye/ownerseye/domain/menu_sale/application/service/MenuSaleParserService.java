@@ -52,23 +52,30 @@ public class MenuSaleParserService {
         String content = extractText(file);
         log.info("[MenuSaleParser] 추출된 텍스트 길이: {}", content.length());
 
-        try {
-            MenuSaleParseResult result = chatClientBuilder.build()
-                    .prompt(PARSE_PROMPT.formatted(content))
-                    .call()
-                    .entity(MenuSaleParseResult.class);
+        int maxRetry = 3;
+        for (int attempt = 1; attempt <= maxRetry; attempt++) {
+            try {
+                MenuSaleParseResult result = chatClientBuilder.build()
+                        .prompt(PARSE_PROMPT.formatted(content))
+                        .call()
+                        .entity(MenuSaleParseResult.class);
 
-            if (result == null || result.items() == null) {
-                throw new MenuSaleException(MenuSaleErrorCode.AI_PARSE_FAILED);
+                if (result == null || result.items() == null) {
+                    log.warn("[MenuSaleParser] AI 응답 null - 시도 {}/{}", attempt, maxRetry);
+                    continue;
+                }
+                log.info("[MenuSaleParser] 파싱된 메뉴 수: {}", result.items().size());
+                return result.items();
+            } catch (MenuSaleException e) {
+                throw e;
+            } catch (Exception e) {
+                log.error("[MenuSaleParser] AI 파싱 실패 - 시도 {}/{}", attempt, maxRetry, e);
+                if (attempt == maxRetry) {
+                    throw new MenuSaleException(MenuSaleErrorCode.AI_PARSE_FAILED);
+                }
             }
-            log.info("[MenuSaleParser] 파싱된 메뉴 수: {}", result.items().size());
-            return result.items();
-        } catch (MenuSaleException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("[MenuSaleParser] AI 파싱 실패", e);
-            throw new MenuSaleException(MenuSaleErrorCode.AI_PARSE_FAILED);
         }
+        throw new MenuSaleException(MenuSaleErrorCode.AI_PARSE_FAILED);
     }
 
     private String extractText(MultipartFile file) {
