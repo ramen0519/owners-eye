@@ -1,5 +1,6 @@
 package com.ownerseye.ownerseye.domain.menu_sale.application.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ownerseye.ownerseye.domain.menu_sale.exception.MenuSaleException;
 import com.ownerseye.ownerseye.domain.menu_sale.exception.code.MenuSaleErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ import java.util.List;
 public class MenuSaleParserService {
 
     private final ChatClient.Builder chatClientBuilder;
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private static final String MENU_COL_HEADER = "주문메뉴";
 
@@ -44,6 +46,10 @@ public class MenuSaleParserService {
                - 세트 내에서 명시된 단품 메뉴명('+ [메뉴명]')은 단품으로 집계하세요.
             6. 같은 메뉴는 모두 합산하세요.
 
+            [응답 형식]
+            반드시 아래 JSON 형식으로만 응답하세요. JSON 외에 다른 텍스트를 추가하지 마세요.
+            {"items":[{"menuName":"메뉴명","quantity":판매횟수},{"menuName":"메뉴명2","quantity":판매횟수2}]}
+
             데이터:
             %s
             """;
@@ -55,17 +61,37 @@ public class MenuSaleParserService {
         int maxRetry = 3;
         for (int attempt = 1; attempt <= maxRetry; attempt++) {
             try {
-                MenuSaleParseResult result = chatClientBuilder.build()
+                String rawResponse = chatClientBuilder.build()
                         .prompt(PARSE_PROMPT.formatted(content))
                         .call()
-                        .entity(MenuSaleParseResult.class);
+                        .content();
 
-                if (result == null || result.items() == null) {
-                    log.warn("[MenuSaleParser] AI 응답 null - 시도 {}/{}", attempt, maxRetry);
+                log.info("[MenuSaleParser] AI raw 응답 길이 (시도 {}/{}): {}",
+                        attempt, maxRetry, rawResponse != null ? rawResponse.length() : 0);
+                log.info("[MenuSaleParser] AI raw 응답 앞 2000자 (시도 {}/{}): {}",
+                        attempt, maxRetry,
+                        rawResponse != null ? rawResponse.substring(0, Math.min(2000, rawResponse.length())) : "null");
+
+                if (rawResponse == null || rawResponse.isBlank()) {
+                    log.warn("[MenuSaleParser] AI 응답 비어있음 - 시도 {}/{}", attempt, maxRetry);
                     continue;
                 }
+
+                String jsonStr = extractJson(rawResponse);
+                if (jsonStr == null) {
+                    log.warn("[MenuSaleParser] JSON 추출 실패 - 시도 {}/{}", attempt, maxRetry);
+                    continue;
+                }
+
+                MenuSaleParseResult result = OBJECT_MAPPER.readValue(jsonStr, MenuSaleParseResult.class);
+                if (result == null || result.items() == null) {
+                    log.warn("[MenuSaleParser] 파싱 결과 null - 시도 {}/{}", attempt, maxRetry);
+                    continue;
+                }
+
                 log.info("[MenuSaleParser] 파싱된 메뉴 수: {}", result.items().size());
                 return result.items();
+
             } catch (MenuSaleException e) {
                 throw e;
             } catch (Exception e) {
@@ -76,6 +102,13 @@ public class MenuSaleParserService {
             }
         }
         throw new MenuSaleException(MenuSaleErrorCode.AI_PARSE_FAILED);
+    }
+
+    private String extractJson(String text) {
+        int start = text.indexOf('{');
+        int end = text.lastIndexOf('}');
+        if (start == -1 || end == -1 || start >= end) return null;
+        return text.substring(start, end + 1);
     }
 
     private String extractText(MultipartFile file) {
