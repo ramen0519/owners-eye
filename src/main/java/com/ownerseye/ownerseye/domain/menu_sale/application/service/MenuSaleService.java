@@ -13,6 +13,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -32,15 +34,21 @@ public class MenuSaleService {
 
         List<MenuSaleParserService.MenuSaleItem> parsed = menuSaleParserService.parse(file);
 
+        Map<String, Integer> aggregated = parsed.stream()
+                .collect(Collectors.groupingBy(
+                        MenuSaleParserService.MenuSaleItem::menuName,
+                        Collectors.summingInt(MenuSaleParserService.MenuSaleItem::quantity)
+                ));
+
         // 같은 월 데이터 교체
         menuSaleMapper.deleteByStoreIdAndYearMonth(storeId, yearMonth);
 
-        for (MenuSaleParserService.MenuSaleItem item : parsed) {
+        for (Map.Entry<String, Integer> entry : aggregated.entrySet()) {
             MenuSaleEntity entity = MenuSaleEntity.builder()
                     .storeId(storeId)
                     .yearMonth(yearMonth)
-                    .menuName(item.menuName())
-                    .quantity(item.quantity())
+                    .menuName(entry.getKey())
+                    .quantity(entry.getValue())
                     .build();
             menuSaleMapper.save(entity);
         }
