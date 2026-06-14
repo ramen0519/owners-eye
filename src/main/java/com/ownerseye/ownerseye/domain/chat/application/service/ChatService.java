@@ -42,11 +42,11 @@ public class ChatService {
             사장님의 실제 매출 데이터를 조회하거나 배민/쿠팡 공식 가이드를 참고하여 답변합니다.
 
             [현재 날짜 정보]
-            - 오늘: %s
-            - 이번 달: %s
-            - 지난 달: %s
-            - "이번달", "이번 달", "이달"은 %s 로 처리하세요.
-            - "지난달", "저번 달", "전달"은 %s 로 처리하세요.
+            - 오늘: TODAY
+            - 이번 달: THIS_MONTH
+            - 지난 달: LAST_MONTH
+            - "이번달", "이번 달", "이달"은 THIS_MONTH 로 처리하세요.
+            - "지난달", "저번 달", "전달"은 LAST_MONTH 로 처리하세요.
 
             규칙:
             - 배민, 쿠팡, POS, 홀 등 채널별 매출/수익/비용/순이익 관련 질문은 반드시 도구(tool)를 사용해 실제 데이터를 조회하세요.
@@ -106,7 +106,10 @@ public class ChatService {
             규칙:
             - 비교표에 없는 수치를 임의로 만들지 마세요.
             - "약", "대략", "비교적", "필요합니다", "요구됩니다" 같은 뭉뚱그린 표현 대신 구체적 수치와 추론을 씁니다.
-            """.formatted(today, thisMonth, lastMonth, thisMonth, lastMonth);
+            """
+                .replace("TODAY", today)
+                .replace("THIS_MONTH", thisMonth)
+                .replace("LAST_MONTH", lastMonth);
     }
 
     public String chat(Long userId, Long storeId, String question) {
