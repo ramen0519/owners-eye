@@ -81,12 +81,9 @@ public class ChatService {
             - 광고비 증가 → 매출 증가면 "광고 효율 유지", 광고비 증가 → 매출 감소면 "광고 효율 저하 - 타겟 재설정 검토" 방향으로 추천하세요.
 
             [3개월 트렌드 분석 시 답변 형식]
-            getThreeMonthTrendAnalysis 도구 결과에는 이미 계산된 [핵심 비용 3개월 비교] 표가 포함됩니다.
-            반드시 아래 순서로 답변을 작성하세요.
-
-            STEP 1 - 비교표 출력: 도구 결과에 포함된 [핵심 비용 3개월 비교] 표를 ```텍스트 코드블록```으로 그대로 출력합니다. 수정하거나 요약하지 마세요.
-
-            STEP 2 - 인사이트 작성: 표 아래에 아래 구조로 인사이트를 작성합니다.
+            [분석 데이터] 섹션에 3개월 비용 비교표와 채널 상세가 제공됩니다.
+            비교표의 수치와 비고 태그를 반드시 참고하여 아래 구조로 인사이트를 작성하세요.
+            수치를 다시 나열하지 말고, 원인 추론·효과 평가·행동 추천에 집중하세요.
 
             ## 📊 3개월 비용 트렌드 인사이트
 
@@ -121,6 +118,26 @@ public class ChatService {
                 .conversationId(conversationId)
                 .build();
 
+        // 트렌드/인사이트 질문: 데이터를 직접 로드해서 prompt에 포함, 비교표는 코드에서 prepend
+        if (isTrendQuestion(question)) {
+            String yearMonth = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"));
+            String trendData = analysisTool.getThreeMonthTrendAnalysis(yearMonth);
+
+            String enrichedPrompt = "[분석 데이터]\n" + trendData + "\n\n[사용자 질문] " + question;
+            String insight = ChatClient.builder(chatModel)
+                    .defaultSystem(buildSystemPrompt())
+                    .build()
+                    .prompt()
+                    .user(enrichedPrompt)
+                    .advisors(memoryAdvisor)
+                    .call()
+                    .content();
+
+            String table = extractComparisonTable(trendData);
+            return table.isEmpty() ? insight : "```\n" + table + "\n```\n\n" + insight;
+        }
+
+        // 일반 매출/메뉴 조회
         var promptSpec = ChatClient.builder(chatModel)
                 .defaultSystem(buildSystemPrompt())
                 .build()
@@ -129,22 +146,32 @@ public class ChatService {
                 .tools(analysisTool, menuSaleTool);
 
         if (isPolicyQuestion(question)) {
-            return promptSpec
-                    .advisors(memoryAdvisor, new QuestionAnswerAdvisor(vectorStore))
-                    .call()
-                    .content();
+            return promptSpec.advisors(memoryAdvisor, new QuestionAnswerAdvisor(vectorStore)).call().content();
         }
-        return promptSpec
-                .advisors(memoryAdvisor)
-                .call()
-                .content();
+        return promptSpec.advisors(memoryAdvisor).call().content();
+    }
+
+    private boolean isTrendQuestion(String q) {
+        // 특정 연월이 명시된 경우는 tool로 처리
+        if (q.matches(".*\\d{4}[-년].*") || q.matches(".*\\d{1,2}월.*")) return false;
+        for (String t : new String[]{"인사이트", "트렌드", "3개월"}) {
+            if (q.contains(t)) return true;
+        }
+        return false;
     }
 
     private boolean isPolicyQuestion(String question) {
-        String[] triggers = {"신청", "방법", "어떻게 하면", "수수료 정책", "정산 방법", "약관", "규정", "가이드"};
-        for (String t : triggers) {
+        for (String t : new String[]{"신청", "방법", "어떻게 하면", "수수료 정책", "정산 방법", "약관", "규정", "가이드"}) {
             if (question.contains(t)) return true;
         }
         return false;
+    }
+
+    private String extractComparisonTable(String trendData) {
+        int start = trendData.indexOf("[핵심 비용");
+        if (start < 0) return "";
+        int end = trendData.indexOf("\n\n[", start);
+        if (end < 0) end = trendData.length();
+        return trendData.substring(start, end).trim();
     }
 }
