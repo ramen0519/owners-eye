@@ -7,8 +7,11 @@ import com.ownerseye.ownerseye.domain.chat.infrastructure.RedisChatMemoryReposit
 import com.ownerseye.ownerseye.domain.menu_sale.persistence.mapper.MenuSaleMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.Advisor;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
@@ -117,19 +120,30 @@ public class ChatService {
         MenuSaleTool menuSaleTool = new MenuSaleTool(menuSaleMapper, userId, storeId);
         String conversationId = userId + ":" + storeId;
 
+        List<Advisor> advisors = new ArrayList<>();
+        advisors.add(MessageChatMemoryAdvisor.builder(chatMemory())
+                .conversationId(conversationId)
+                .build());
+        if (isPolicyQuestion(question)) {
+            advisors.add(new QuestionAnswerAdvisor(vectorStore));
+        }
+
         return ChatClient.builder(chatModel)
                 .defaultSystem(buildSystemPrompt())
                 .build()
                 .prompt()
                 .user(question)
                 .tools(analysisTool, menuSaleTool)
-                .advisors(
-                        MessageChatMemoryAdvisor.builder(chatMemory())
-                                .conversationId(conversationId)
-                                .build(),
-                        new QuestionAnswerAdvisor(vectorStore)
-                )
+                .advisors(advisors)
                 .call()
                 .content();
+    }
+
+    private boolean isPolicyQuestion(String question) {
+        String[] triggers = {"신청", "방법", "어떻게 하면", "수수료 정책", "정산 방법", "약관", "규정", "가이드"};
+        for (String t : triggers) {
+            if (question.contains(t)) return true;
+        }
+        return false;
     }
 }
