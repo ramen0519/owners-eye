@@ -7,6 +7,11 @@ import com.ownerseye.ownerseye.domain.analysis.application.service.AnalysisServi
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.annotation.Tool;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Map;
+import java.util.LinkedHashMap;
+
 @Slf4j
 public class AnalysisTool {
 
@@ -24,39 +29,105 @@ public class AnalysisTool {
     public String getMonthlyAnalysis(String yearMonth) {
         try {
             AnalysisResponse response = analysisService.analyze(userId, storeId, yearMonth);
-            return format(response);
+            return formatDetail(response);
         } catch (Exception e) {
             log.error("[AnalysisTool] 분석 조회 실패: userId={}, storeId={}, yearMonth={}", userId, storeId, yearMonth, e);
-            return yearMonth + " 데이터 조회 중 오류가 발생했습니다.";
+            return yearMonth + " 데이터가 없습니다.";
         }
     }
 
-    private String format(AnalysisResponse response) {
+    @Tool(description = "최근 3개월 매출 트렌드를 분석합니다. yearMonth는 기준 월('yyyy-MM' 형식)입니다. 인사이트 요청, 트렌드 분석, 비용 변화 분석 시 이 도구를 우선 사용하세요.")
+    public String getThreeMonthTrendAnalysis(String yearMonth) {
+        try {
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM");
+            LocalDate base = LocalDate.parse(yearMonth + "-01");
+            String m1 = base.minusMonths(1).format(fmt);
+            String m2 = base.minusMonths(2).format(fmt);
+
+            AnalysisResponse current = analysisService.analyze(userId, storeId, yearMonth);
+            AnalysisResponse prev1 = tryAnalyze(m1);
+            AnalysisResponse prev2 = tryAnalyze(m2);
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("=== 최근 3개월 매출 트렌드 ===\n\n");
+
+            if (prev2 != null) sb.append(formatSummary(prev2));
+            if (prev1 != null) sb.append(formatSummary(prev1));
+            sb.append(formatDetail(current));
+
+            return sb.toString();
+        } catch (Exception e) {
+            log.error("[AnalysisTool] 3개월 트렌드 조회 실패: yearMonth={}", yearMonth, e);
+            return "트렌드 분석 중 오류가 발생했습니다.";
+        }
+    }
+
+    private AnalysisResponse tryAnalyze(String yearMonth) {
+        try {
+            return analysisService.analyze(userId, storeId, yearMonth);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    // 이전 월: 핵심 비율만 요약
+    private String formatSummary(AnalysisResponse r) {
         StringBuilder sb = new StringBuilder();
-        sb.append(response.yearMonth()).append(" 매출 분석 결과\n");
-        sb.append("총 매출: ").append(formatAmount(response.totalRevenue())).append("\n\n");
+        sb.append("[").append(r.yearMonth()).append(" 요약]\n");
+        sb.append("총 매출: ").append(formatAmount(r.totalRevenue())).append("\n");
 
-        for (ChannelAnalysisResponse channel : response.channels()) {
-            if (channel.revenue() == 0) continue;
-            sb.append("[").append(channel.channel()).append("]\n");
-            sb.append("매출: ").append(formatAmount(channel.revenue()))
-              .append(" (전체 매출 대비 비중: ").append(channel.revenueRatio()).append("%)\n");
+        // 전체 매출 기준 핵심 비용 비율 집계
+        Map<String, long[]> costTotals = new LinkedHashMap<>();
+        long totalCostAll = 0;
+        long totalProfit = 0;
 
-            long totalCost = channel.costs().stream().mapToLong(CostItemResponse::amount).sum();
-            long profit = channel.revenue() - totalCost;
-            double profitRatio = channel.revenue() == 0 ? 0 : Math.round((double) profit / channel.revenue() * 1000) / 10.0;
-            sb.append("총 비용: ").append(formatAmount(totalCost)).append("\n");
-            sb.append("순이익: ").append(formatAmount(profit))
-              .append(" (매출 대비 ").append(profitRatio).append("%)\n");
-            sb.append("비용 상세:\n");
+        for (ChannelAnalysisResponse ch : r.channels()) {
+            if (ch.revenue() == 0) continue;
+            for (CostItemResponse cost : ch.costs()) {
+                costTotals.computeIfAbsent(cost.name(), k -> new long[1])[0] += cost.amount();
+                totalCostAll += cost.amount();
+            }
+        }
+        totalProfit = r.totalRevenue() - totalCostAll;
 
-            for (CostItemResponse cost : channel.costs()) {
+        for (Map.Entry<String, long[]> entry : costTotals.entrySet()) {
+            long amt = entry.getValue()[0];
+            if (amt == 0) continue;
+            double ratio = r.totalRevenue() == 0 ? 0 : Math.round((double) amt / r.totalRevenue() * 1000) / 10.0;
+            sb.append("  ").append(entry.getKey()).append(": ").append(formatAmount(amt))
+              .append(" (매출 대비 ").append(ratio).append("%)\n");
+        }
+
+        double profitRatio = r.totalRevenue() == 0 ? 0 : Math.round((double) totalProfit / r.totalRevenue() * 1000) / 10.0;
+        sb.append("  순이익: ").append(formatAmount(totalProfit))
+          .append(" (매출 대비 ").append(profitRatio).append("%)\n\n");
+        return sb.toString();
+    }
+
+    // 현재 월: 채널별 전체 상세
+    private String formatDetail(AnalysisResponse r) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[").append(r.yearMonth()).append(" 상세 분석]\n");
+        sb.append("총 매출: ").append(formatAmount(r.totalRevenue())).append("\n\n");
+
+        for (ChannelAnalysisResponse ch : r.channels()) {
+            if (ch.revenue() == 0) continue;
+            sb.append("▶ ").append(ch.channel()).append("\n");
+            sb.append("  매출: ").append(formatAmount(ch.revenue()))
+              .append(" (전체 비중 ").append(ch.revenueRatio()).append("%)\n");
+
+            long totalCost = ch.costs().stream().mapToLong(CostItemResponse::amount).sum();
+            long profit = ch.revenue() - totalCost;
+            double profitRatio = ch.revenue() == 0 ? 0 : Math.round((double) profit / ch.revenue() * 1000) / 10.0;
+
+            for (CostItemResponse cost : ch.costs()) {
                 if (cost.amount() == 0) continue;
                 sb.append("  - ").append(cost.name()).append(": ")
                   .append(formatAmount(cost.amount()))
                   .append(" (매출 대비 ").append(cost.ratio()).append("%)\n");
             }
-            sb.append("\n");
+            sb.append("  순이익: ").append(formatAmount(profit))
+              .append(" (매출 대비 ").append(profitRatio).append("%)\n\n");
         }
         return sb.toString();
     }
