@@ -7,11 +7,8 @@ import com.ownerseye.ownerseye.domain.chat.infrastructure.RedisChatMemoryReposit
 import com.ownerseye.ownerseye.domain.menu_sale.persistence.mapper.MenuSaleMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.client.advisor.Advisor;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
@@ -120,21 +117,25 @@ public class ChatService {
         MenuSaleTool menuSaleTool = new MenuSaleTool(menuSaleMapper, userId, storeId);
         String conversationId = userId + ":" + storeId;
 
-        List<Advisor> advisors = new ArrayList<>();
-        advisors.add(MessageChatMemoryAdvisor.builder(chatMemory())
+        var memoryAdvisor = MessageChatMemoryAdvisor.builder(chatMemory())
                 .conversationId(conversationId)
-                .build());
-        if (isPolicyQuestion(question)) {
-            advisors.add(new QuestionAnswerAdvisor(vectorStore));
-        }
+                .build();
 
-        return ChatClient.builder(chatModel)
+        var promptSpec = ChatClient.builder(chatModel)
                 .defaultSystem(buildSystemPrompt())
                 .build()
                 .prompt()
                 .user(question)
-                .tools(analysisTool, menuSaleTool)
-                .advisors(advisors)
+                .tools(analysisTool, menuSaleTool);
+
+        if (isPolicyQuestion(question)) {
+            return promptSpec
+                    .advisors(memoryAdvisor, new QuestionAnswerAdvisor(vectorStore))
+                    .call()
+                    .content();
+        }
+        return promptSpec
+                .advisors(memoryAdvisor)
                 .call()
                 .content();
     }
