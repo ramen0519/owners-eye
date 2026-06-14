@@ -58,7 +58,7 @@ public class InsightService {
                 .call()
                 .content();
 
-        return "```\n" + comparisonTable + "\n```\n\n" + insight;
+        return comparisonTable + "\n\n" + insight;
     }
 
     private AnalysisResponse tryAnalyze(Long userId, Long storeId, String yearMonth) {
@@ -84,19 +84,20 @@ public class InsightService {
         String h2 = r2 != null ? r2.yearMonth() : "-";
         String h3 = r3.yearMonth();
 
+        long rev1 = r1 != null ? r1.totalRevenue() : 1;
+        long rev2 = r2 != null ? r2.totalRevenue() : 1;
+        long rev3 = r3.totalRevenue();
+
         StringBuilder sb = new StringBuilder();
-        sb.append("[핵심 비용 3개월 비교 - 전체 매출 대비 비율]\n");
-        sb.append(String.format("%-10s | %-20s | %-20s | %-20s | %8s | %8s | 비고\n",
-                "항목", h1, h2, h3, "전전→전", "전→현"));
-        sb.append("-".repeat(110)).append("\n");
+        sb.append("### 핵심 비용 3개월 비교 (전체 매출 대비 비율)\n\n");
+        sb.append("| 항목 | ").append(h1).append(" | ").append(h2).append(" | ").append(h3)
+          .append(" | 전전→전 | 전→현 | 비고 |\n");
+        sb.append("|---|---|---|---|---|---|---|\n");
 
         for (String key : keys) {
             long a1 = getAmt(c1, key);
             long a2 = getAmt(c2, key);
             long a3 = getAmt(c3, key);
-            long rev1 = r1 != null ? r1.totalRevenue() : 1;
-            long rev2 = r2 != null ? r2.totalRevenue() : 1;
-            long rev3 = r3.totalRevenue();
 
             double ratio1 = toRatio(a1, rev1);
             double ratio2 = toRatio(a2, rev2);
@@ -104,32 +105,34 @@ public class InsightService {
             double d1 = round1(ratio2 - ratio1);
             double d2 = round1(ratio3 - ratio2);
 
-            sb.append(String.format("%-10s | %5.1f%% (%-10s) | %5.1f%% (%-10s) | %5.1f%% (%-10s) | %+7.1f%%p | %+7.1f%%p | %s\n",
-                    key,
-                    ratio1, formatAmt(a1),
-                    ratio2, formatAmt(a2),
-                    ratio3, formatAmt(a3),
-                    d1, d2, buildTag(key, a3, d1, d2)));
+            sb.append("| ").append(key)
+              .append(" | ").append(ratio1).append("% (").append(formatAmt(a1)).append(")")
+              .append(" | ").append(ratio2).append("% (").append(formatAmt(a2)).append(")")
+              .append(" | ").append(ratio3).append("% (").append(formatAmt(a3)).append(")")
+              .append(" | ").append(String.format("%+.1f%%p", d1))
+              .append(" | ").append(String.format("%+.1f%%p", d2))
+              .append(" | ").append(buildTag(key, a3, d1, d2))
+              .append(" |\n");
         }
 
         long p1 = r1 != null ? r1.totalRevenue() - sumAmt(c1) : 0;
         long p2 = r2 != null ? r2.totalRevenue() - sumAmt(c2) : 0;
-        long p3 = r3.totalRevenue() - sumAmt(c3);
-        long rev1 = r1 != null ? r1.totalRevenue() : 1;
-        long rev2 = r2 != null ? r2.totalRevenue() : 1;
+        long p3 = rev3 - sumAmt(c3);
         double pr1 = toRatio(p1, rev1);
         double pr2 = toRatio(p2, rev2);
-        double pr3 = toRatio(p3, r3.totalRevenue());
+        double pr3 = toRatio(p3, rev3);
         double pd1 = round1(pr2 - pr1);
         double pd2 = round1(pr3 - pr2);
-        String ptag = (pd1 < 0 && pd2 < 0) ? "[3개월 연속 하락 ⚠]" : (pd1 > 0 && pd2 > 0) ? "[3개월 연속 상승]" : "";
+        String ptag = (pd1 < 0 && pd2 < 0) ? "3개월 연속 하락 ⚠" : (pd1 > 0 && pd2 > 0) ? "3개월 연속 상승" : "";
 
-        sb.append(String.format("%-10s | %5.1f%% (%-10s) | %5.1f%% (%-10s) | %5.1f%% (%-10s) | %+7.1f%%p | %+7.1f%%p | %s\n",
-                "▶ 순이익",
-                pr1, formatAmt(p1),
-                pr2, formatAmt(p2),
-                pr3, formatAmt(p3),
-                pd1, pd2, ptag));
+        sb.append("| **순이익** ")
+          .append(" | **").append(pr1).append("% (").append(formatAmt(p1)).append(")**")
+          .append(" | **").append(pr2).append("% (").append(formatAmt(p2)).append(")**")
+          .append(" | **").append(pr3).append("% (").append(formatAmt(p3)).append(")**")
+          .append(" | **").append(String.format("%+.1f%%p", pd1)).append("**")
+          .append(" | **").append(String.format("%+.1f%%p", pd2)).append("**")
+          .append(" | ").append(ptag)
+          .append(" |\n");
 
         return sb.toString();
     }
