@@ -76,10 +76,10 @@ public class AnalysisTool {
         sb.append("[").append(r.yearMonth()).append(" 요약]\n");
         sb.append("총 매출: ").append(formatAmount(r.totalRevenue())).append("\n");
 
-        // 전체 매출 기준 핵심 비용 비율 집계
+        // 광고비는 0이어도 반드시 포함되도록 미리 초기화
         Map<String, long[]> costTotals = new LinkedHashMap<>();
+        costTotals.put("광고비", new long[1]);
         long totalCostAll = 0;
-        long totalProfit = 0;
 
         for (ChannelAnalysisResponse ch : r.channels()) {
             if (ch.revenue() == 0) continue;
@@ -88,14 +88,14 @@ public class AnalysisTool {
                 totalCostAll += cost.amount();
             }
         }
-        totalProfit = r.totalRevenue() - totalCostAll;
+        long totalProfit = r.totalRevenue() - totalCostAll;
 
         for (Map.Entry<String, long[]> entry : costTotals.entrySet()) {
             long amt = entry.getValue()[0];
-            if (amt == 0) continue;
             double ratio = r.totalRevenue() == 0 ? 0 : Math.round((double) amt / r.totalRevenue() * 1000) / 10.0;
+            String suffix = (amt == 0 && "광고비".equals(entry.getKey())) ? " [미집행]" : "";
             sb.append("  ").append(entry.getKey()).append(": ").append(formatAmount(amt))
-              .append(" (매출 대비 ").append(ratio).append("%)\n");
+              .append(" (매출 대비 ").append(ratio).append("%)").append(suffix).append("\n");
         }
 
         double profitRatio = r.totalRevenue() == 0 ? 0 : Math.round((double) totalProfit / r.totalRevenue() * 1000) / 10.0;
@@ -121,10 +121,12 @@ public class AnalysisTool {
             double profitRatio = ch.revenue() == 0 ? 0 : Math.round((double) profit / ch.revenue() * 1000) / 10.0;
 
             for (CostItemResponse cost : ch.costs()) {
-                if (cost.amount() == 0) continue;
+                // 광고비는 0이어도 항상 표시
+                if (cost.amount() == 0 && !"광고비".equals(cost.name())) continue;
+                String suffix = (cost.amount() == 0 && "광고비".equals(cost.name())) ? " [미집행]" : "";
                 sb.append("  - ").append(cost.name()).append(": ")
                   .append(formatAmount(cost.amount()))
-                  .append(" (매출 대비 ").append(cost.ratio()).append("%)\n");
+                  .append(" (매출 대비 ").append(cost.ratio()).append("%)").append(suffix).append("\n");
             }
             sb.append("  순이익: ").append(formatAmount(profit))
               .append(" (매출 대비 ").append(profitRatio).append("%)\n\n");
