@@ -40,15 +40,21 @@ public class AnalysisTool {
             if (channel.revenue() == 0) continue;
             sb.append("[").append(channel.channel()).append("]\n");
             sb.append("매출: ").append(formatAmount(channel.revenue()))
-              .append(" (비중: ").append(channel.revenueRatio()).append("%)\n");
+              .append(" (전체 매출 대비 비중: ").append(channel.revenueRatio()).append("%)\n");
 
             long totalCost = channel.costs().stream().mapToLong(CostItemResponse::amount).sum();
-            sb.append("순이익: ").append(formatAmount(channel.revenue() - totalCost)).append("\n");
+            long profit = channel.revenue() - totalCost;
+            double profitRatio = channel.revenue() == 0 ? 0 : Math.round((double) profit / channel.revenue() * 1000) / 10.0;
+            sb.append("총 비용: ").append(formatAmount(totalCost)).append("\n");
+            sb.append("순이익: ").append(formatAmount(profit))
+              .append(" (매출 대비 ").append(profitRatio).append("%)\n");
+            sb.append("비용 상세:\n");
 
             for (CostItemResponse cost : channel.costs()) {
                 if (cost.amount() == 0) continue;
                 sb.append("  - ").append(cost.name()).append(": ")
-                  .append(formatAmount(cost.amount())).append("\n");
+                  .append(formatAmount(cost.amount()))
+                  .append(" (매출 대비 ").append(cost.ratio()).append("%)\n");
             }
             sb.append("\n");
         }

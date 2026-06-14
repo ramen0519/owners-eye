@@ -90,7 +90,7 @@ public class BaeminParserService {
                     storeType[4] += Math.abs(getNumeric(row, 20)) + Math.abs(getNumeric(row, 21));
                     storeType[5] += Math.abs(getNumeric(row, 25));
                 } else if ("우리가게클릭".equals(orderType)) {
-                    adFee += getNumeric(row, 26) + getNumeric(row, 27);
+                    adFee += Math.abs(getNumeric(row, 26)) + Math.abs(getNumeric(row, 27));
                 }
             }
 
