@@ -64,4 +64,34 @@
   letter-spacing: 0.5px;
   margin-bottom: 14px;
 }
-.insightText { font-size: 15px; color: #333; line-height: 1.9; white-space: pre-wrap; }
+.insightText { font-size: 15px; color: #333; line-height: 1.9; }
+
+.insightText :global(table) {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0 24px;
+  font-size: 13px;
+  overflow-x: auto;
+  display: block;
+}
+.insightText :global(th) {
+  background: #f0f0ff;
+  color: #4f46e5;
+  font-weight: 700;
+  padding: 10px 12px;
+  text-align: center;
+  border: 1px solid #d8d8f0;
+  white-space: nowrap;
+}
+.insightText :global(td) {
+  padding: 9px 12px;
+  border: 1px solid #e8e8f5;
+  text-align: center;
+  white-space: nowrap;
+}
+.insightText :global(tr:nth-child(even)) { background: #fafafe; }
+.insightText :global(tr:last-child td) {
+  font-weight: 700;
+  background: #f5f3ff;
+  border-top: 2px solid #c4b5fd;
+}

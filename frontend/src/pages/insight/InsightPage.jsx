@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { getInsight } from '../../api/insight';
 import styles from './InsightPage.module.css';
 
@@ -57,7 +58,7 @@ export default function InsightPage() {
       {insight && (
         <div className={styles.insightBox}>
           <p className={styles.insightLabel}>AI 분석 결과</p>
-          <div className={styles.insightText}><ReactMarkdown>{insight}</ReactMarkdown></div>
+          <div className={styles.insightText}><ReactMarkdown remarkPlugins={[remarkGfm]}>{insight}</ReactMarkdown></div>
         </div>
       )}
     </div>
