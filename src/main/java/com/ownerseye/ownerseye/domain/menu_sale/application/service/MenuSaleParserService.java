@@ -14,6 +14,7 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -24,13 +25,15 @@ public class MenuSaleParserService {
     private final ChatClient.Builder chatClientBuilder;
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    private static final String MENU_COL_HEADER = "주문메뉴";
-
     private static final String PARSE_PROMPT = """
-            아래는 음식점의 주문 내역 데이터입니다. 각 행은 주문 1건이며, 주문한 메뉴와 옵션이 쉼표로 구분되어 있습니다.
-            '+ '로 시작하지 않는 항목이 메뉴명이고, '+ '로 시작하는 항목은 옵션입니다.
+            아래는 음식점의 주문 내역 엑셀 파일 전체 내용입니다. 쉼표로 구분된 셀 데이터가 행 단위로 나열되어 있습니다.
 
-            주 메뉴의 판매 횟수를 집계해주세요.
+            [작업 순서]
+            1. '주문메뉴' 헤더가 있는 컬럼을 찾으세요.
+            2. 해당 컬럼의 데이터 행들을 분석하세요.
+            3. 각 행은 주문 1건이며, 메뉴와 옵션이 쉼표로 구분되어 있습니다.
+               '+ '로 시작하지 않는 항목이 메뉴명이고, '+ '로 시작하는 항목은 옵션입니다.
+            4. 주 메뉴의 판매 횟수를 집계하세요.
 
             [집계 규칙]
             1. 주 메뉴(음식 단품)만 집계하세요. 표기 변형(예: 공백 차이, "~피자" 등 접미사)은 동일 메뉴로 정규화하세요.
@@ -115,30 +118,18 @@ public class MenuSaleParserService {
         try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
             Sheet sheet = workbook.getNumberOfSheets() > 1 ? workbook.getSheetAt(1) : workbook.getSheetAt(0);
             StringBuilder sb = new StringBuilder();
-            int menuColIndex = -1;
 
             for (Row row : sheet) {
-                if (menuColIndex == -1) {
-                    for (Cell cell : row) {
-                        if (MENU_COL_HEADER.equals(getCellText(cell))) {
-                            menuColIndex = cell.getColumnIndex();
-                            break;
-                        }
-                    }
-                    continue;
+                List<String> cells = new ArrayList<>();
+                for (Cell cell : row) {
+                    cells.add(getCellText(cell));
                 }
-                Cell menuCell = row.getCell(menuColIndex);
-                if (menuCell == null) continue;
-                String menuText = getCellText(menuCell);
-                if (!menuText.isBlank()) {
-                    sb.append(menuText).append("\n");
+                String line = String.join(",", cells);
+                if (!line.isBlank()) {
+                    sb.append(line).append("\n");
                 }
             }
 
-            if (menuColIndex == -1) {
-                log.error("[MenuSaleParser] '주문메뉴' 컬럼을 찾을 수 없음");
-                throw new MenuSaleException(MenuSaleErrorCode.EXCEL_READ_FAILED);
-            }
             return sb.toString();
         } catch (MenuSaleException e) {
             throw e;
